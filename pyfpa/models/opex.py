@@ -16,6 +16,4 @@ def opex_from_config(cfg: EntityConfig, revenue_df: pd.DataFrame) -> pd.DataFram
         else:  # variable
             cols[line.name] = revenue_df["total"] * line.pct_of_revenue
     df = pd.DataFrame(cols, index=idx)
-    if df.empty:
-        df = pd.DataFrame(index=idx)
     return df.assign(total=df.sum(axis=1))

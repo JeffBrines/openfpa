@@ -13,6 +13,13 @@ class Channel(BaseModel):
     seasonality: list[float] = Field(min_length=12, max_length=12)
     cogs_pct: float = Field(ge=0, le=1)
 
+    @field_validator("name")
+    @classmethod
+    def _name_not_reserved(cls, v: str) -> str:
+        if v.strip().lower() == "total":
+            raise ValueError("'total' is a reserved column name")
+        return v
+
     @field_validator("seasonality")
     @classmethod
     def _weights_positive(cls, v: list[float]) -> list[float]:
@@ -26,6 +33,13 @@ class OpexLine(BaseModel):
     kind: Literal["fixed", "variable"]
     monthly_amount: float = 0.0       # used when kind == "fixed"
     pct_of_revenue: float = 0.0       # used when kind == "variable"
+
+    @field_validator("name")
+    @classmethod
+    def _name_not_reserved(cls, v: str) -> str:
+        if v.strip().lower() == "total":
+            raise ValueError("'total' is a reserved column name")
+        return v
 
 
 class DebtInstrument(BaseModel):

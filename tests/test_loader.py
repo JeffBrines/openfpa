@@ -55,3 +55,14 @@ def test_load_ridgeline_config():
 def test_load_missing_file_raises():
     with pytest.raises(FileNotFoundError):
         load_config(REPO_ROOT / "examples/does_not_exist.yaml")
+
+
+def test_channel_name_total_rejected():
+    with pytest.raises(ValidationError):
+        Channel(name="total", annual_revenue=1.0, seasonality=[1.0] * 12, cogs_pct=0.5)
+
+
+def test_opex_name_total_rejected():
+    from pyfpa.config.schemas import OpexLine
+    with pytest.raises(ValidationError):
+        OpexLine(name="Total", kind="fixed", monthly_amount=1.0)

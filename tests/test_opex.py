@@ -23,3 +23,4 @@ def test_variable_opex_scales_with_revenue():
     df = opex_from_config(cfg, rev)
     # 100 revenue * 0.10 = 10 per month
     assert df["Ads"].round(6).tolist() == [10.0] * 12
+    assert df["total"].round(6).tolist() == [10.0] * 12
