@@ -16,3 +16,13 @@ def test_load_cash13_config():
 def test_load_cash13_missing_file_raises():
     with pytest.raises(FileNotFoundError):
         load_cash13_config(REPO_ROOT / "examples/nope.yaml")
+
+
+# --- append to tests/test_io_loaders.py ---
+import pyfpa  # noqa: E402
+
+
+def test_io_public_exports():
+    for name in ["load_cash13_config", "read_pl_csv", "to_briefing_md",
+                 "forecast_to_excel"]:
+        assert hasattr(pyfpa, name), f"missing public export: {name}"
