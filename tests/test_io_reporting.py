@@ -32,3 +32,18 @@ def test_briefing_includes_runway_when_provided():
 def test_briefing_omits_runway_when_absent():
     md = to_briefing_md(_monthly())
     assert "13-Week Cash Runway" not in md
+
+
+# --- append to tests/test_io_reporting.py ---
+import pandas as pd  # noqa: E402
+from pyfpa.io.reporting import forecast_to_excel  # noqa: E402
+
+
+def test_forecast_to_excel_roundtrip(tmp_path):
+    df = _monthly()
+    out = tmp_path / "forecast.xlsx"
+    forecast_to_excel(df, out)
+    assert out.exists()
+    back = pd.read_excel(out, sheet_name="Forecast", index_col=0)
+    assert len(back) == len(df)
+    assert "ending_cash" in back.columns
