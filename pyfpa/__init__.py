@@ -13,7 +13,8 @@ from pyfpa.cash13.schemas import Cash13Config, WeeklyFlow
 from pyfpa.cash13.flows import expand_flow
 from pyfpa.cash13.forecast import cash13_forecast
 from pyfpa.cash13.runway import runway_summary
-from pyfpa.io.loaders import load_cash13_config
+from pyfpa.io.loaders import load_cash13_config, load_skus
+from pyfpa.analysis.sku import Sku, sku_profitability, pareto_breakpoint
 from pyfpa.io.pl_csv import read_pl_csv
 from pyfpa.io.reporting import to_briefing_md, forecast_to_excel
 
@@ -24,4 +25,5 @@ __all__ = [
     "working_capital_from_config", "debt_from_config", "cashflow_from_config",
     "Cash13Config", "WeeklyFlow", "expand_flow", "cash13_forecast", "runway_summary",
     "load_cash13_config", "read_pl_csv", "to_briefing_md", "forecast_to_excel",
+    "Sku", "sku_profitability", "pareto_breakpoint", "load_skus",
 ]
