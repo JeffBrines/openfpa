@@ -1,8 +1,10 @@
 # openfpa
 
+[![CI](https://github.com/JeffBrines/openfpa/actions/workflows/ci.yml/badge.svg)](https://github.com/JeffBrines/openfpa/actions/workflows/ci.yml)
+
 **An AI-native FP&A toolkit.** Point an AI coding agent (Claude Code, Claude Cowork, Codex) at your numbers and it stands up a CFO-grade financial model — a 12-month P&L and cash-flow forecast, a 13-week cash-runway, and a board-ready briefing — in minutes.
 
-`openfpa` is a deliberately **lean Python forecast engine** plus (coming next) a **progressive Claude skillset** that encodes the methodology and judgment of a real finance team. The engine is small on purpose: it's the substrate an AI extends per-business, not an off-the-shelf app you configure by hand.
+`openfpa` is a deliberately **lean Python forecast engine** plus a **progressive Claude skillset** that encodes the methodology and judgment of a real finance team. The engine is small on purpose: it's the substrate an AI extends per-business, not an off-the-shelf app you configure by hand.
 
 > Built by [Guiderail](https://guiderail.example). Open-source under MIT. Runs entirely on synthetic demo data — no credentials required.
 
