@@ -14,7 +14,7 @@ def working_capital_from_config(
     cash; rising AP frees cash). First-period delta is vs opening balances."""
     idx = revenue_df.index
     wc = cfg.working_capital
-    ob = cfg.opening_balances
+    opening = cfg.opening_balances
 
     ar = revenue_df["total"] * (wc.dso_days / _DAYS_PER_MONTH)
     ap = cogs_df["total"] * (wc.dpo_days / _DAYS_PER_MONTH)
@@ -22,9 +22,9 @@ def working_capital_from_config(
 
     df = pd.DataFrame({"ar": ar, "ap": ap, "inventory": inventory}, index=idx)
     df = df.assign(
-        d_ar=df["ar"].diff().fillna(df["ar"] - ob.ar),
-        d_ap=df["ap"].diff().fillna(df["ap"] - ob.ap),
-        d_inventory=df["inventory"].diff().fillna(df["inventory"] - ob.inventory),
+        d_ar=df["ar"].diff().fillna(df["ar"] - opening.ar),
+        d_ap=df["ap"].diff().fillna(df["ap"] - opening.ap),
+        d_inventory=df["inventory"].diff().fillna(df["inventory"] - opening.inventory),
     )
     return df.assign(
         wc_cash_impact=(-df["d_ar"] + df["d_ap"] - df["d_inventory"])

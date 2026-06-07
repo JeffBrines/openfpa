@@ -14,6 +14,8 @@ def debt_from_config(cfg: EntityConfig) -> pd.DataFrame:
     principal = pd.Series(0.0, index=idx)
     ending = pd.Series(0.0, index=idx)
 
+    # interest/principal/ending are locally-owned Series; in-place setitem
+    # accumulation across instruments is intentional (no .assign equivalent).
     for inst in cfg.debt:
         balance = inst.opening_balance
         monthly_rate = inst.annual_rate / 12.0
