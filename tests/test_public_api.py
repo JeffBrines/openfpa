@@ -11,6 +11,15 @@ def test_public_api_exports():
         assert hasattr(pyfpa, name), f"missing public export: {name}"
 
 
+def test_all_matches_public_api():
+    assert set(pyfpa.__all__) == {
+        "EntityConfig", "Channel", "OpexLine", "DebtInstrument",
+        "WorkingCapitalConfig", "OpeningBalances", "load_config",
+        "revenue_from_config", "cogs_from_config", "opex_from_config",
+        "working_capital_from_config", "debt_from_config", "cashflow_from_config",
+    }, "pyfpa.__all__ must exactly match expected public API"
+
+
 def test_top_level_smoke():
     from pathlib import Path
     repo_root = Path(__file__).resolve().parents[1]

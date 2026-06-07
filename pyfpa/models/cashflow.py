@@ -11,7 +11,11 @@ from pyfpa.models.working_capital import working_capital_from_config
 
 
 def _tax_series(pretax: pd.Series, opening_nol: float, tax_rate: float) -> pd.Series:
-    """Apply tax_rate to positive pre-tax income after consuming NOL carryforward."""
+    """Apply tax_rate to positive pre-tax income after consuming NOL carryforward.
+
+    In-period losses do not generate new NOL for future months; only the
+    opening_nol passed in is consumed.
+    """
     nol = opening_nol
     out = []
     for value in pretax:

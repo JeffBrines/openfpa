@@ -8,6 +8,7 @@ def test_cashflow_full_forecast(sample_config):
                 "pretax_income", "tax", "net_income", "wc_cash_impact",
                 "principal", "change_in_cash", "ending_cash"]:
         assert col in df.columns
+    assert not df.isna().any().any(), "output DataFrame must contain no NaN values"
 
     assert round(df["gross_profit"].iloc[0], 6) == 50.0
     assert round(df["ebitda"].iloc[0], 6) == -50.0
