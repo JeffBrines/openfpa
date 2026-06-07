@@ -1,0 +1,19 @@
+import pyfpa
+
+
+def test_public_api_exports():
+    for name in [
+        "EntityConfig", "Channel", "OpexLine", "DebtInstrument",
+        "WorkingCapitalConfig", "OpeningBalances", "load_config",
+        "revenue_from_config", "cogs_from_config", "opex_from_config",
+        "working_capital_from_config", "debt_from_config", "cashflow_from_config",
+    ]:
+        assert hasattr(pyfpa, name), f"missing public export: {name}"
+
+
+def test_top_level_smoke():
+    from pathlib import Path
+    repo_root = Path(__file__).resolve().parents[1]
+    cfg = pyfpa.load_config(repo_root / "examples/ridgeline/config.yaml")
+    df = pyfpa.cashflow_from_config(cfg)
+    assert len(df) == 12
