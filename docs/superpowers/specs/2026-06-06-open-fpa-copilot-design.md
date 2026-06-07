@@ -24,16 +24,19 @@ any SMB on NetSuite or QuickBooks (but it must also work off a plain spreadsheet
 2. A LinkedIn launch post + blog post (first-class deliverables, not afterthoughts).
 3. A fast-follow content series (one post per new demo industry).
 
-**Source material.** Extracted clean-room from two private production FP&A codebases:
-- **a logistics FP&A model ("the logistics model")** — single-entity trucking model; standout = 13-week direct-method cash
-  forecast (payment lags, AR/AP lookback pipelines), actuals overlay, Excel-with-live-formulas.
-- **a consumer-products FP&A model ("the consumer-products model")** — multi-entity; standout = clean pip-installable engine
-  architecture (chained `*_from_config` model layers, `DataProvider` injection), NetSuite
-  ingestion, and a flagship `cfo-financial-analysis` skill encoding analytical judgment.
+**Source material.** Distilled clean-room from production FP&A systems across multiple
+industries:
+- A **single-entity logistics model**; standout = 13-week direct-method cash forecast (payment
+  lags, AR/AP lookback pipelines), actuals overlay, Excel-with-live-formulas.
+- A **multi-entity consumer-products model**; standout = clean pip-installable engine
+  architecture (chained `*_from_config` model layers, host-injection data provider), live GL
+  ingestion, and a flagship judgment skill encoding analytical CFO know-how.
 
-**Hard constraint — clean room.** Zero real the logistics client / Hive data, names, credentials, or account
-numbers (e.g., NetSuite account `REDACTED`). Everything ships against synthetic demo data only.
-Integration adapters are documented and shipped with synthetic fixtures, never live secrets.
+**Hard constraint — clean room.** Zero real client data, company names, credentials, or account
+numbers ship in this repo. Everything runs against synthetic demo data only. The product
+*encourages* connecting real data sources — **NetSuite** and **QuickBooks** for accounting,
+**Shopify** for D2C ops — but integration adapters are documented and shipped with synthetic
+fixtures; live credentials come from the user's own environment and are never committed.
 
 ---
 
@@ -120,7 +123,7 @@ assumptions" summary.
 ### Phase 2 — Configure (thin)
 
 **`fpa-configure-actuals`** — wires real numbers in. Offline path: map a spreadsheet/CSV into
-the actuals format. Live path: documented NetSuite (SuiteQL/OAuth) and QuickBooks adapters with
+the actuals format. Live path: documented NetSuite (SuiteQL/OAuth), QuickBooks, and Shopify adapters with
 synthetic fixtures. Establishes the freeze-line / actuals-overlay convention.
 
 ### Phase 3 — Operate (deep — the moat)
@@ -160,7 +163,8 @@ pydantic-validated config, no hidden state, YAML as source of truth.
 - `pyfpa/cash13/` — 13-week direct-method engine: payment-lag config, AR/AP lookback pipelines,
   raw cash position.
 - `pyfpa/io/` — `read_pl_csv` / `read_xlsx` in; `to_excel` (live-formula workbook) +
-  `to_briefing_md` out; adapter stubs `netsuite.py`, `quickbooks.py` with synthetic fixtures.
+  `to_briefing_md` out; adapter stubs `netsuite.py`, `quickbooks.py` (accounting) and
+  `shopify.py` (D2C ops) with synthetic fixtures.
 
 Everything heavier (UI, DB, live auth, multi-entity/FX) is intentionally absent.
 
