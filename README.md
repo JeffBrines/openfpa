@@ -85,14 +85,16 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 | 13-week cash engine (`pyfpa.cash13`) | ✅ Built |
 | IO layer + data-source adapters (`pyfpa.io`) | ✅ Built |
 | Runnable demo (`examples/ridgeline`) | ✅ Built |
-| **Claude skillset** (the hero — see below) | 🚧 Coming next |
+| **Claude skillset** (the hero — see below) | ✅ Built |
 
-**The skillset is the point.** The forecast engine is the substrate; the headline feature is a progressive Claude skillset that drives it across the lifecycle:
+**The skillset is the point.** The forecast engine is the substrate; the headline feature is a progressive Claude skillset (in [`skills/`](skills/), installable as a Claude plugin) that drives it across the lifecycle:
 
-1. **Learn the business** — interview + financials → a durable business profile, and *generate bespoke skills/agents* for that company (the self-extending part).
-2. **Scaffold** a model from a trial balance.
-3. **Configure** real numbers / connect a data source.
-4. **Operate** — monthly close, cash-runway, board briefings — guided by an encoded *CFO-judgment* layer (the gotchas a real finance team knows).
+1. **`fpa-learn-business`** — interview + financials → a durable business profile, and *generate bespoke skills/agents* for that company (the self-extending part).
+2. **`fpa-scaffold-model`** — build a runnable model from a trial balance.
+3. **`fpa-configure-actuals`** — wire real numbers / connect a data source (NetSuite · QuickBooks · Shopify).
+4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing` — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, EBITDA≈EBIT here, raw cash ≠ insolvency).
+
+See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — including a cold AI agent building a coffee-roaster forecast from a 10-minute intake and proposing its own bespoke skill.
 
 ## Development
 

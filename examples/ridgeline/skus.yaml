@@ -1,0 +1,6 @@
+skus:
+  - {name: Summit Camp Chair, units: 18000, price: 89, unit_cost: 38}
+  - {name: Basecamp Lounger, units: 9000, price: 149, unit_cost: 67}
+  - {name: Trail Stool, units: 22000, price: 39, unit_cost: 16}
+  - {name: Ridgeback Recliner, units: 6000, price: 199, unit_cost: 95}
+  - {name: Kids Trail Chair, units: 12000, price: 49, unit_cost: 22}

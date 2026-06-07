@@ -19,6 +19,7 @@ def test_all_matches_public_api():
         "working_capital_from_config", "debt_from_config", "cashflow_from_config",
         "Cash13Config", "WeeklyFlow", "expand_flow", "cash13_forecast", "runway_summary",
         "load_cash13_config", "read_pl_csv", "to_briefing_md", "forecast_to_excel",
+        "Sku", "sku_profitability", "pareto_breakpoint", "load_skus",
     }, "pyfpa.__all__ must exactly match expected public API"
 
 
