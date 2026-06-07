@@ -1,0 +1,14 @@
+opening_cash: 150000
+weeks: 13
+receipts:
+  - {name: D2C daily sales, amount: 38000, start_week: 1, recurrence: weekly}
+  - {name: Amazon payout, amount: 95000, start_week: 2, recurrence: biweekly}
+  - {name: Wholesale AR collection, amount: 120000, start_week: 4, recurrence: once}
+  - {name: Wholesale AR collection, amount: 120000, start_week: 9, recurrence: once}
+disbursements:
+  - {name: Payroll, amount: 55000, start_week: 1, recurrence: biweekly}
+  - {name: Inventory PO deposit, amount: 220000, start_week: 3, recurrence: once}
+  - {name: Inventory PO balance, amount: 240000, start_week: 6, recurrence: once}
+  - {name: Operating overhead, amount: 23000, start_week: 1, recurrence: weekly}
+  - {name: Marketing, amount: 18000, start_week: 1, recurrence: weekly}
+  - {name: Quarterly tax estimate, amount: 60000, start_week: 11, recurrence: once}
