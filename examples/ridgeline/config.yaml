@@ -1,0 +1,38 @@
+name: Ridgeline Chair Co.
+start_month: "2026-01"
+horizon_months: 12
+tax_rate: 0.21
+channels:
+  - name: D2C
+    annual_revenue: 3000000
+    growth_rate: 0.10
+    seasonality: [0.6, 0.6, 0.8, 1.0, 1.4, 1.6, 1.4, 1.2, 0.9, 0.8, 0.9, 0.8]
+    cogs_pct: 0.42
+  - name: Amazon
+    annual_revenue: 2000000
+    growth_rate: 0.05
+    seasonality: [0.7, 0.7, 0.9, 1.0, 1.3, 1.5, 1.3, 1.1, 0.9, 0.9, 0.9, 0.8]
+    cogs_pct: 0.50
+  - name: Wholesale
+    annual_revenue: 1000000
+    growth_rate: 0.03
+    seasonality: [1.4, 1.6, 1.2, 1.0, 0.8, 0.6, 0.6, 0.7, 0.9, 1.0, 1.1, 1.1]
+    cogs_pct: 0.60
+opex:
+  - {name: Marketing, kind: variable, pct_of_revenue: 0.12}
+  - {name: Payroll, kind: fixed, monthly_amount: 110000}
+  - {name: Software & Tools, kind: fixed, monthly_amount: 9000}
+  - {name: Rent & Facilities, kind: fixed, monthly_amount: 14000}
+debt:
+  - {name: LOC, kind: loc, opening_balance: 600000, annual_rate: 0.105}
+  - {name: Term Loan, kind: term_loan, opening_balance: 480000, annual_rate: 0.085, monthly_principal: 10000}
+working_capital:
+  dso_days: 38
+  dpo_days: 32
+  dio_days: 95
+opening_balances:
+  cash: 350000
+  ar: 520000
+  ap: 410000
+  inventory: 1100000
+  nol: 0

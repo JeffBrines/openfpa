@@ -36,3 +36,22 @@ def test_bad_start_month_rejected():
     kwargs = _minimal_kwargs() | {"start_month": "not-a-month"}
     with pytest.raises(ValidationError):
         EntityConfig(**kwargs)
+
+
+# --- append to tests/test_loader.py ---
+from pathlib import Path
+from pyfpa.config.loader import load_config
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_load_ridgeline_config():
+    cfg = load_config(REPO_ROOT / "examples/ridgeline/config.yaml")
+    assert cfg.name == "Ridgeline Chair Co."
+    assert len(cfg.channels) == 3
+    assert cfg.horizon_months == 12
+
+
+def test_load_missing_file_raises():
+    with pytest.raises(FileNotFoundError):
+        load_config(REPO_ROOT / "examples/does_not_exist.yaml")
