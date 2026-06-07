@@ -11,7 +11,12 @@ def working_capital_from_config(
     cfg: EntityConfig, revenue_df: pd.DataFrame, cogs_df: pd.DataFrame
 ) -> pd.DataFrame:
     """AR/AP/inventory balances and their cash impact (rising AR/inventory uses
-    cash; rising AP frees cash). First-period delta is vs opening balances."""
+    cash; rising AP frees cash). First-period delta is vs opening balances.
+
+    Opening balances are assumed to sit at the modeled steady state. If a
+    supplied opening balance diverges from the day-count-implied balance, the
+    full gap flows through month 1 as a one-time working-capital cash impact.
+    """
     idx = revenue_df.index
     wc = cfg.working_capital
     opening = cfg.opening_balances

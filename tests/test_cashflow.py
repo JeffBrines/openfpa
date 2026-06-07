@@ -47,3 +47,19 @@ def test_ridgeline_config_runs_end_to_end():
     assert len(df) == 12
     assert df["ending_cash"].notna().all()
     assert df["revenue"].iloc[0] > 0
+
+
+def test_ridgeline_golden_snapshot():
+    """Locks the flagship demo output. If engine math changes, update intentionally."""
+    from pathlib import Path
+    from pyfpa.config.loader import load_config
+    repo_root = Path(__file__).resolve().parents[1]
+    cf = cashflow_from_config(load_config(repo_root / "examples/ridgeline/config.yaml"))
+    # Month-1 working capital impact must be ~0 now that opening balances are
+    # steady-state-consistent (regression guard for the opening-balance seam).
+    assert abs(cf["wc_cash_impact"].iloc[0]) < 2000
+    assert round(cf["revenue"].sum()) == 6000000
+    assert round(cf["ebitda"].sum()) == 824000
+    assert round(cf["net_income"].sum()) == 572651
+    assert round(cf["ending_cash"].iloc[-1]) == 720418
+    assert round(cf["ending_cash"].min()) == -85585

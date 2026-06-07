@@ -32,7 +32,7 @@ working_capital:
   dio_days: 95
 opening_balances:
   cash: 350000
-  ar: 520000
-  ap: 410000
-  inventory: 1100000
+  ar: 486000
+  ap: 204000
+  inventory: 606000
   nol: 0

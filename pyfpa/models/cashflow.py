@@ -36,7 +36,7 @@ def cashflow_from_config(cfg: EntityConfig) -> pd.DataFrame:
     debt = debt_from_config(cfg)
 
     gross_profit = revenue["total"] - cogs["total"]
-    ebitda = gross_profit - opex["total"]
+    ebitda = gross_profit - opex["total"]  # no D&A modeled, so EBITDA == EBIT here
     interest = debt["interest"]
     pretax = ebitda - interest
     tax = _tax_series(pretax, cfg.opening_balances.nol, cfg.tax_rate)
