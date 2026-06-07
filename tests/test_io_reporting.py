@@ -1,5 +1,6 @@
 import pyfpa
-from pyfpa.io.reporting import to_briefing_md
+import pandas as pd
+from pyfpa.io.reporting import to_briefing_md, forecast_to_excel
 
 REPO_ROOT = __import__("pathlib").Path(__file__).resolve().parents[1]
 
@@ -27,16 +28,14 @@ def test_briefing_includes_runway_when_provided():
     assert "## 13-Week Cash Runway" in md
     assert "week 6" in md
     assert "week 3" in md
+    # negative money renders as -$85,000, not $-85,000
+    assert "-$85,000" in md
+    assert "$-85,000" not in md
 
 
 def test_briefing_omits_runway_when_absent():
     md = to_briefing_md(_monthly())
     assert "13-Week Cash Runway" not in md
-
-
-# --- append to tests/test_io_reporting.py ---
-import pandas as pd  # noqa: E402
-from pyfpa.io.reporting import forecast_to_excel  # noqa: E402
 
 
 def test_forecast_to_excel_roundtrip(tmp_path):
@@ -47,3 +46,10 @@ def test_forecast_to_excel_roundtrip(tmp_path):
     back = pd.read_excel(out, sheet_name="Forecast", index_col=0)
     assert len(back) == len(df)
     assert "ending_cash" in back.columns
+
+
+def test_briefing_missing_columns_raises():
+    import pytest
+    bad = pd.DataFrame({"revenue": [1.0]})  # missing ebitda/net_income/ending_cash
+    with pytest.raises(ValueError):
+        to_briefing_md(bad)

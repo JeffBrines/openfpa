@@ -5,8 +5,12 @@ from pathlib import Path
 import pandas as pd
 
 
+_REQUIRED_COLUMNS = {"revenue", "ebitda", "net_income", "ending_cash"}
+
+
 def _money(value: float) -> str:
-    return f"${value:,.0f}"
+    sign = "-" if value < 0 else ""
+    return f"{sign}${abs(value):,.0f}"
 
 
 def to_briefing_md(
@@ -20,6 +24,9 @@ def to_briefing_md(
     Expects columns: revenue, ebitda, net_income, ending_cash. If `runway`
     (the dict from cash13.runway_summary) is provided, a 13-week section is added.
     """
+    missing = _REQUIRED_COLUMNS - set(forecast_df.columns)
+    if missing:
+        raise ValueError(f"forecast_df missing required columns: {sorted(missing)}")
     df = forecast_df
     lines = [f"# {title}", "", "## Headline", ""]
     lines += [
