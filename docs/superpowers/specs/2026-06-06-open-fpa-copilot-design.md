@@ -168,18 +168,21 @@ Everything heavier (UI, DB, live auth, multi-entity/FX) is intentionally absent.
 
 ## 6. Demo Company (flagship) + Content Series
 
-**Ridgeline Flask Co.** (name TBD — also Thornwood Goods / Basin & Range Supply) — a fictional
-premium D2C drinkware/outdoor brand, ~$6M revenue, three channels (D2C site, Amazon, wholesale),
-real inventory cycle, seasonal Q4 spike, a working-capital LOC. Ships as `examples/ridgeline/`:
-raw QuickBooks-style P&L export CSV, generated config, and a **golden-output forecast** so
-`pytest` asserts the demo always works.
+**Ridgeline Chair Co.** — a fictional premium D2C camping-chair brand with a **limited SKU set**
+(~4–6 hero products), ~$6M revenue, three channels (D2C site, Amazon, wholesale), a real
+inventory cycle, and a seasonal spring/summer spike, financed with a working-capital LOC. The
+limited SKU count is deliberate: SKU-level profitability is legible (not a 10,000-line Pareto),
+inventory concentration sharpens the cash story, and "premium + few SKUs + seasonal" is an
+instantly recognizable D2C shape. Ships as `examples/ridgeline/`: raw QuickBooks-style P&L
+export CSV, generated config, and a **golden-output forecast** so `pytest` asserts the demo
+always works.
 
 **Industry-pack fast-follow series** — the content engine. Each post adds one
 `examples/<industry>/` company and the hook is the *same skillset re-tooling itself*:
 
 | Order | Industry | Bespoke skill spawned | Hook |
 |------|----------|----------------------|------|
-| 1 (launch) | D2C drinkware | sku-profitability, CAC/contribution | "Claude built itself a CFO for my brand" |
+| 1 (launch) | D2C camping chairs (limited SKU) | sku-profitability, CAC/contribution | "Claude built itself a CFO for my brand" |
 | 2 | Logistics | driver-cost-scorecard | cash-runway drama |
 | 3 | SaaS | arr-waterfall, cohort-retention | "same toolkit, zero new code from me" |
 | 4 | Professional services | utilization / realization | |
@@ -224,7 +227,7 @@ skill change, which is the product demonstrating itself.
 
 1. **Public product name** — engine stays `pyfpa`; product/plugin name TBD ("CFO Copilot",
    "Ledgerline", other) with "by Guiderail" attribution.
-2. **Demo company name** — Ridgeline Flask Co. vs alternatives.
+2. **Demo company name** — Ridgeline Chair Co. (locked).
 3. **Repo name / final home** — currently scaffolded at `/Volumes/Crucial/openfpa`.
 
 ---
