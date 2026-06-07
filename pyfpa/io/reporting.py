@@ -51,13 +51,14 @@ def to_briefing_md(
     lines += [
         "## Monthly",
         "",
-        "| Month | Revenue | EBITDA | Ending Cash |",
-        "|---|---|---|---|",
+        "| Month | Revenue | EBITDA | Net Income | Ending Cash |",
+        "|---|---|---|---|---|",
     ]
     for period, row in df.iterrows():
         lines.append(
             f"| {period} | {_money(row['revenue'])} | "
-            f"{_money(row['ebitda'])} | {_money(row['ending_cash'])} |"
+            f"{_money(row['ebitda'])} | {_money(row['net_income'])} | "
+            f"{_money(row['ending_cash'])} |"
         )
     return "\n".join(lines) + "\n"
 

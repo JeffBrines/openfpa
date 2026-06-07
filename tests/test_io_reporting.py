@@ -53,3 +53,14 @@ def test_briefing_missing_columns_raises():
     bad = pd.DataFrame({"revenue": [1.0]})  # missing ebitda/net_income/ending_cash
     with pytest.raises(ValueError):
         to_briefing_md(bad)
+
+
+def test_briefing_with_real_cash13_runway():
+    from pyfpa.io.loaders import load_cash13_config
+    cash13_cfg = load_cash13_config(REPO_ROOT / "examples/ridgeline/cash13.yaml")
+    runway = pyfpa.runway_summary(pyfpa.cash13_forecast(cash13_cfg))
+    md = to_briefing_md(_monthly(), title="Ridgeline", runway=runway)
+    assert "## 13-Week Cash Runway" in md
+    # real Ridgeline runway: trough -$146,000 at week 7, first negative week 3
+    assert "week 7" in md
+    assert "-$146,000" in md
