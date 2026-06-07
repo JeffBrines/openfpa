@@ -32,7 +32,7 @@ Turn forecast output into a board/investor-grade briefing: the headline numbers,
    forecast_to_excel(monthly, "forecast.xlsx")
    ```
    `to_briefing_md` emits a headline (revenue, EBITDA, net income, ending cash), an optional 13-week runway section, and a monthly table.
-3. **Add the narrative** the renderer can't: the 3 things that moved this period, the 3 forward risks, and the one ask (e.g. "approve a $200K line to bridge the spring build").
+3. **Add the narrative** the renderer can't. `to_briefing_md` emits only the headline, the optional runway section, and the monthly table — it has no narrative slot. So author your own markdown *around* it: prepend a `## What changed` section (the 3 things that moved) and append `## Risks` (3 forward risks) and `## The ask` (e.g. "approve a $200K line to bridge the spring build"). The rendered briefing is the data spine; you supply the story.
 4. **Apply judgment** (see **fpa-cfo-judgment**): caveat any pre-close months, state whether cash is flash or GL, and don't quote `ebitda` as true EBITDA if D&A matters.
 
 ## One-command demo

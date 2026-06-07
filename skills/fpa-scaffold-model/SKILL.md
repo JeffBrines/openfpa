@@ -31,7 +31,7 @@ Turn a company's financials into a runnable `pyfpa` config. Read the business pr
 ## Conventions (match the engine)
 
 - YAML is the source of truth; never hardcode numbers in code.
-- Set `opening_balances` AR/AP/inventory to the DSO/DPO/DIO-implied steady state (see **fpa-cfo-judgment** working-capital seam), or the month-1 cash will swing on an artifact.
+- Set `opening_balances` AR/AP/inventory to the **first forecast month's** DSO/DPO/DIO-implied balances — the engine diffs each month against the prior, seeding month 1 against opening, so use month-1 projected revenue/COGS, NOT the annual average. Get this wrong and month-1 cash swings on a one-time artifact (see **fpa-cfo-judgment** working-capital seam).
 - `"total"` is a reserved channel/opex name (the engine adds a `total` column).
 
 ## Next

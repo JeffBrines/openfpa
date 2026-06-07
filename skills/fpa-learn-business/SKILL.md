@@ -19,7 +19,7 @@ Before scaffolding any model, learn the business. This produces two artifacts: a
 
 ## Workflow
 
-1. **Interview + ingest.** Read whatever financials exist (`pyfpa.read_pl_csv`, the `pyfpa.io.adapters` for NetSuite/QuickBooks/Shopify), then ask the operator the questions a numbers don't answer:
+1. **Interview first; ingest if data exists.** Ingestion is optional — a net-new client may have only an intake call, so never stall waiting for a file that doesn't exist. If financials are available, read them (`pyfpa.read_pl_csv`, or the `pyfpa.io.adapters` for NetSuite/QuickBooks/Shopify). Either way, ask the operator the questions numbers don't answer:
    - What do you sell, and how do you bill (subscription, wholesale terms, D2C, projects)?
    - What's the cash cycle — when do you collect, when do you pay?
    - What's seasonal? What's lumpy (inventory buys, tax, payroll cadence)?
