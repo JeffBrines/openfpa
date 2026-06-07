@@ -1,8 +1,23 @@
 [project]
-name = "pyfpa"
+name = "openfpa"
 version = "0.1.0"
-description = "Lean, config-driven FP&A forecast engine"
+description = "AI-native FP&A toolkit: a lean, config-driven forecast engine (P&L, 13-week cash, briefings) and a progressive Claude skillset."
+readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Guiderail" }]
+keywords = ["fpa", "cfo", "finance", "forecasting", "cash-flow", "fp&a", "netsuite", "quickbooks"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial :: Accounting",
+]
 dependencies = [
     "pandas>=2.0",
     "pydantic>=2.5",
@@ -11,14 +26,20 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "build>=1.2"]
+
+[project.urls]
+Homepage = "https://github.com/JeffBrines/openfpa"
+Repository = "https://github.com/JeffBrines/openfpa"
+Issues = "https://github.com/JeffBrines/openfpa/issues"
 
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["pyfpa*"]
 
 [tool.setuptools.package-data]
+"pyfpa" = ["py.typed"]
 "pyfpa.io" = ["fixtures/*.csv"]

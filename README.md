@@ -13,11 +13,13 @@
 ## See it in 30 seconds
 
 ```bash
-pip install -e .
+pip install -e .          # from a clone — or `pip install openfpa` once published
 python examples/ridgeline/run_demo.py
 ```
 
 That runs the full pipeline on a synthetic premium D2C brand (**Ridgeline Chair Co.**) and writes a CFO briefing. Here's the headline it produces:
+
+> The distribution is **`openfpa`**; the importable package is **`pyfpa`** (`import pyfpa`).
 
 ```markdown
 # Ridgeline Chair Co.
