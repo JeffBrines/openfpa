@@ -7,6 +7,7 @@ from pyfpa.cash13.schemas import Cash13Config, WeeklyFlow
 
 
 def _sum_flows(flows: list[WeeklyFlow], weeks: int) -> list[float]:
+    """Sum each flow's weekly amounts into a single length-`weeks` list."""
     totals = [0.0] * weeks
     for flow in flows:
         for i, amount in enumerate(expand_flow(flow, weeks)):

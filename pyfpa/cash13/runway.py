@@ -10,7 +10,7 @@ def runway_summary(forecast_df: pd.DataFrame) -> dict:
     """
     ending = forecast_df["ending_cash"]
     negative_weeks = ending.index[ending < 0]
-    first_negative = int(negative_weeks[0]) if len(negative_weeks) > 0 else None
+    first_negative = None if negative_weeks.empty else int(negative_weeks[0])
     return {
         "min_cash": float(ending.min()),
         "min_week": int(ending.idxmin()),

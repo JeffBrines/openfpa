@@ -21,12 +21,15 @@ def test_runway_identifies_trough_and_first_negative():
 
 
 def test_runway_none_when_always_positive():
+    # Dips at week 2 but never goes negative, so min_week is a real trough (not week 1).
     cfg = Cash13Config(
         opening_cash=1000.0,
         weeks=3,
         receipts=[WeeklyFlow(name="Sales", amount=10.0, start_week=1, recurrence="weekly")],
+        disbursements=[WeeklyFlow(name="OneOff", amount=30.0, start_week=2, recurrence="once")],
     )
     summary = runway_summary(cash13_forecast(cfg))
+    # ending cash: 1010, 990, 1000 -> trough 990 at week 2; never negative
     assert summary["first_negative_week"] is None
-    assert summary["min_cash"] == 1010.0
-    assert summary["min_week"] == 1
+    assert summary["min_cash"] == 990.0
+    assert summary["min_week"] == 2

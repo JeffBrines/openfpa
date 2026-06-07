@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
 from pyfpa.cash13.schemas import WeeklyFlow, Cash13Config
+from pyfpa.cash13.forecast import cash13_forecast
 
 
 def test_weeklyflow_defaults():
@@ -26,19 +27,14 @@ def test_weeklyflow_amount_nonnegative():
         WeeklyFlow(name="x", amount=-5.0, start_week=1)
 
 
-# --- append to tests/test_cash13_forecast.py ---
-from pyfpa.cash13.schemas import WeeklyFlow as WF  # noqa: E402
-from pyfpa.cash13.forecast import cash13_forecast  # noqa: E402
-
-
 def test_forecast_weekly_trajectory():
     cfg = Cash13Config(
         opening_cash=100.0,
         weeks=4,
-        receipts=[WF(name="Sales", amount=50.0, start_week=1, recurrence="weekly")],
+        receipts=[WeeklyFlow(name="Sales", amount=50.0, start_week=1, recurrence="weekly")],
         disbursements=[
-            WF(name="Opex", amount=40.0, start_week=1, recurrence="weekly"),
-            WF(name="Rent", amount=200.0, start_week=3, recurrence="once"),
+            WeeklyFlow(name="Opex", amount=40.0, start_week=1, recurrence="weekly"),
+            WeeklyFlow(name="Rent", amount=200.0, start_week=3, recurrence="once"),
         ],
     )
     df = cash13_forecast(cfg)
@@ -57,3 +53,21 @@ def test_forecast_empty_flows_holds_opening_cash():
     df = cash13_forecast(cfg)
     assert df["ending_cash"].tolist() == [500.0, 500.0, 500.0]
     assert df["receipts"].sum() == 0.0
+
+
+def test_forecast_biweekly_and_same_week_merge():
+    cfg = Cash13Config(
+        opening_cash=0.0,
+        weeks=5,
+        receipts=[WeeklyFlow(name="Amazon", amount=100.0, start_week=1, recurrence="biweekly")],
+        disbursements=[
+            WeeklyFlow(name="Overhead", amount=10.0, start_week=1, recurrence="weekly"),
+            WeeklyFlow(name="Big bill", amount=50.0, start_week=3, recurrence="once"),
+        ],
+    )
+    df = cash13_forecast(cfg)
+    # biweekly receipts hit weeks 1,3,5; overhead 10 every week; big bill 50 merges into wk3
+    assert df["receipts"].tolist() == [100.0, 0.0, 100.0, 0.0, 100.0]
+    assert df["disbursements"].tolist() == [10.0, 10.0, 60.0, 10.0, 10.0]
+    # net: 90,-10,40,-10,90 ; ending: 90,80,120,110,200
+    assert df["ending_cash"].tolist() == [90.0, 80.0, 120.0, 110.0, 200.0]
