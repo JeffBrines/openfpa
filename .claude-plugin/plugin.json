@@ -1,0 +1,20 @@
+{
+  "name": "openfpa",
+  "version": "0.1.0",
+  "description": "AI-native FP&A toolkit: a progressive Claude skillset (learn the business → scaffold → configure → operate) over a lean Python forecast engine. Point Claude at your numbers and it stands up a CFO-grade model, a 13-week cash runway, and a board-ready briefing.",
+  "author": {
+    "name": "Guiderail"
+  },
+  "homepage": "https://github.com/JeffBrines/openfpa",
+  "license": "MIT",
+  "keywords": [
+    "fpa",
+    "cfo",
+    "finance",
+    "forecasting",
+    "cash-flow",
+    "fp&a",
+    "netsuite",
+    "quickbooks"
+  ]
+}
