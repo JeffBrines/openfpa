@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/JeffBrines/openfpa/actions/workflows/ci.yml/badge.svg)](https://github.com/JeffBrines/openfpa/actions/workflows/ci.yml)
 
-**An AI-native FP&A toolkit.** Point an AI coding agent (Claude Code, Claude Cowork, Codex) at your numbers and it stands up a CFO-grade financial model — a 12-month P&L and cash-flow forecast, a 13-week cash-runway, and a board-ready briefing — in minutes.
+**An AI-native FP&A toolkit.** Point an AI coding agent (Claude Code, Claude Cowork, Codex) at your numbers and it builds a working financial model — a 12-month P&L and cash-flow forecast, a 13-week cash runway, and a board-ready briefing.
 
 `openfpa` is a deliberately **lean Python forecast engine** plus a **progressive Claude skillset** that encodes the methodology and judgment of a real finance team. The engine is small on purpose: it's the substrate an AI extends per-business, not an off-the-shelf app you configure by hand.
 
@@ -19,7 +19,7 @@ Those tools hand you connectors and a modeling layer, then leave the thinking to
 Two things underneath, rarely combined:
 
 - **Hundreds of hours of real FP&A engineering** — methodology distilled from production CFO work (a trucking fleet, a bicycle company, and more), not textbook finance.
-- **A self-improving loop, inspired by [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch)** — it scores itself against *your* actuals and gets measurably better over time. AutoResearch improves against validation loss; openfpa improves against reconciliation error on your own books.
+- **A self-improving loop, inspired by [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch)** — it scores itself against *your* actuals, aiming to get better over time. AutoResearch optimizes against validation loss; openfpa optimizes against reconciliation error on your own books.
 
 Self-hosted, auditable, yours — what it learns lives as plain files in your repo, not someone else's cloud. An open-source experiment from [Guiderail](https://guiderail.example); we'd love your help making it the FP&A tool we all wish existed.
 
@@ -34,18 +34,18 @@ Fair question — Claude *can* write financial code from scratch. But every run 
 - **Reproducible & auditable.** Config-driven, every figure source-traced to a filing, re-runnable — not a chat transcript you can't reproduce.
 - **Self-extension *with guardrails*.** The agent re-tools a *known, tested* structure per business (it generated a bespoke `segment-rollup` skill for Fox's segments) instead of emitting throwaway scripts. Template-grade rigor **and** bespoke-grade fit.
 
-**Bare Claude is a brilliant analyst with a blank spreadsheet. openfpa is the firm's tested model engine, the encoded house methodology, and the review checklist — the rails the agent drives on, and the gauges that catch it when it's wrong.**
+The short version: bare Claude is a capable analyst with a blank spreadsheet. openfpa adds the tested model engine, the encoded methodology, and a review checklist — rails to drive on, and gauges that catch the mistakes.
 
 ---
 
 ## How it compounds
 
-openfpa isn't static — it gets *better the more you use it*, on two loops, both with your data staying in your own repo:
+openfpa is designed to get better the more you use it — two loops, both keeping your data in your own repo:
 
-- **Per client (Loop A).** Every close, it scores its last forecast against your actuals and proposes ratified tweaks — the model gets better at *this* business. Human corrections feed the same memory: the highest-signal fixes, captured durably as plain markdown you own.
-- **Across your book (Loop B).** For a fractional CFO with many clients, it distills what *generalizes* — validated by leave-one-out cross-client backtesting (a pattern must not degrade the clients it wasn't learned from) — into a local library that seeds every new client. **Client #10 starts smarter than client #1.**
+- **Per client (Loop A).** Every close, it scores its last forecast against your actuals and proposes tweaks for you to accept or reject. Human corrections feed the same memory: the fixes you catch by eye, captured durably as plain markdown you own.
+- **Across your book (Loop B).** For a fractional CFO with many clients, it looks for patterns that *generalize* — validated by leave-one-out cross-client backtesting (a pattern has to hold up on the clients it wasn't learned from) — and, with your sign-off, saves them to a local library that seeds the next client.
 
-It's [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch) idea applied to FP&A: a cheap, objective fitness metric — *reconciliation error against your own books* — drives measurable self-improvement at the client level **and** the portfolio level. Nothing phones home.
+It borrows [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch) idea: a cheap, objective fitness metric — *reconciliation error against your own books* — for the loops to optimize against, at the client level and across your book. Nothing phones home; you ratify every change.
 
 ---
 
@@ -158,21 +158,21 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 
 | Component | Status |
 |---|---|
-| Monthly forecast engine (`pyfpa`) | ✅ Built |
-| 13-week cash engine (`pyfpa.cash13`) | ✅ Built |
-| IO layer + data-source adapters (`pyfpa.io`) | ✅ Built |
-| Runnable demo (`examples/ridgeline`) | ✅ Built |
-| Real public-company proof (`examples/foxfactory`) | ✅ Built |
-| **Claude skillset** (the hero — see below) | ✅ Built |
-| Self-improving backtest loop (`pyfpa.backtest` + `fpa-backtest-learn`) | ✅ Built |
-| Human corrections + vault memory (`pyfpa.memory` + `fpa-capture-correction`) | ✅ Built |
-| Cross-client portfolio learning (`pyfpa.portfolio` + `fpa-portfolio-learn`) | ✅ Built |
+| Monthly forecast engine (`pyfpa`) | Built |
+| 13-week cash engine (`pyfpa.cash13`) | Built |
+| IO layer + data-source adapters (`pyfpa.io`) | Built |
+| Runnable demo (`examples/ridgeline`) | Built |
+| Real public-company proof (`examples/foxfactory`) | Built |
+| Claude skillset (see below) | Built |
+| Self-improving backtest loop (`pyfpa.backtest` + `fpa-backtest-learn`) | Built |
+| Human corrections + vault memory (`pyfpa.memory` + `fpa-capture-correction`) | Built |
+| Cross-client portfolio learning (`pyfpa.portfolio` + `fpa-portfolio-learn`) | Built |
 
 **The skillset is the point.** The forecast engine is the substrate; the headline feature is a progressive Claude skillset (in [`skills/`](skills/), installable as a Claude plugin) that drives it across the lifecycle:
 
 1. **`fpa-learn-business`** — interview + financials → a durable business profile, and *generate bespoke skills/agents* for that company (the self-extending part).
 2. **`fpa-scaffold-model`** — build a runnable model from a trial balance.
-3. **`fpa-configure-actuals`** — wire real numbers / connect a data source (NetSuite · QuickBooks · Shopify).
+3. **`fpa-configure-actuals`** — wire in real numbers from wherever they live: local spreadsheets, QuickBooks/NetSuite via MCP or API, a 10-K, and so on.
 4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing`, **`fpa-backtest-learn`** (scores past forecasts against your actuals and proposes ratified improvements — the self-improving loop), **`fpa-capture-correction`** (turns a human's "that's off because X" into durable memory that grounds every future forecast), and **`fpa-portfolio-learn`** (distills what generalizes across your whole book into a reusable library that seeds new clients — cross-client learning) — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, D&A is a real expense — not a cash-flow freebie, a goodwill impairment is non-cash — bridge it, raw cash ≠ insolvency).
 
 See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — a cold AI agent building a coffee-roaster forecast from a 10-minute intake and writing its own bespoke skill, *and* the same toolkit reconciling Fox Factory's real 10-K to the dollar.
@@ -181,7 +181,7 @@ See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — a cold AI age
 
 ```bash
 pip install -e ".[dev]"
-pytest -q          # 92 tests, all green
+pytest -q          # the full test suite
 ```
 
 ## License
