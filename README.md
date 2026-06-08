@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/JeffBrines/openfpa/actions/workflows/ci.yml/badge.svg)](https://github.com/JeffBrines/openfpa/actions/workflows/ci.yml)
 
-**An AI-native FP&A toolkit.** Point an AI coding agent (Claude Code, Claude Cowork, Codex) at your numbers and it stands up a CFO-grade financial model — a 12-month P&L and cash-flow forecast, a 13-week cash-runway, and a board-ready briefing — in minutes.
+**An AI-native FP&A toolkit.** Point an AI coding agent (Claude Code, Claude Cowork, Codex) at your numbers and it builds a working financial model — a 12-month P&L and cash-flow forecast, a 13-week cash runway, and a board-ready briefing.
 
 `openfpa` is a deliberately **lean Python forecast engine** plus a **progressive Claude skillset** that encodes the methodology and judgment of a real finance team. The engine is small on purpose: it's the substrate an AI extends per-business, not an off-the-shelf app you configure by hand.
 
@@ -19,7 +19,7 @@ Those tools hand you connectors and a modeling layer, then leave the thinking to
 Two things underneath, rarely combined:
 
 - **Hundreds of hours of real FP&A engineering** — methodology distilled from production CFO work (a trucking fleet, a bicycle company, and more), not textbook finance.
-- **A self-improving loop, inspired by [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch)** — it scores itself against *your* actuals and gets measurably better over time. AutoResearch improves against validation loss; openfpa improves against reconciliation error on your own books.
+- **A self-improving loop, inspired by [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch)** — it scores itself against *your* actuals, aiming to get better over time. AutoResearch optimizes against validation loss; openfpa optimizes against reconciliation error on your own books.
 
 Self-hosted, auditable, yours — what it learns lives as plain files in your repo, not someone else's cloud. An open-source experiment from [Guiderail](https://guiderail.example); we'd love your help making it the FP&A tool we all wish existed.
 
@@ -34,7 +34,18 @@ Fair question — Claude *can* write financial code from scratch. But every run 
 - **Reproducible & auditable.** Config-driven, every figure source-traced to a filing, re-runnable — not a chat transcript you can't reproduce.
 - **Self-extension *with guardrails*.** The agent re-tools a *known, tested* structure per business (it generated a bespoke `segment-rollup` skill for Fox's segments) instead of emitting throwaway scripts. Template-grade rigor **and** bespoke-grade fit.
 
-**Bare Claude is a brilliant analyst with a blank spreadsheet. openfpa is the firm's tested model engine, the encoded house methodology, and the review checklist — the rails the agent drives on, and the gauges that catch it when it's wrong.**
+The short version: bare Claude is a capable analyst with a blank spreadsheet. openfpa adds the tested model engine, the encoded methodology, and a review checklist — rails to drive on, and gauges that catch the mistakes.
+
+---
+
+## How it compounds
+
+openfpa is designed to get better the more you use it — two loops, both keeping your data in your own repo:
+
+- **Per client (Loop A).** Every close, it scores its last forecast against your actuals and proposes tweaks for you to accept or reject. Human corrections feed the same memory: the fixes you catch by eye, captured durably as plain markdown you own.
+- **Across your book (Loop B).** For a fractional CFO with many clients, it looks for patterns that *generalize* — validated by leave-one-out cross-client backtesting (a pattern has to hold up on the clients it wasn't learned from) — and, with your sign-off, saves them to a local library that seeds the next client.
+
+It borrows [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch) idea: a cheap, objective fitness metric — *reconciliation error against your own books* — for the loops to optimize against, at the client level and across your book. Nothing phones home; you ratify every change.
 
 ---
 
@@ -88,13 +99,28 @@ It self-extends, too: Fox reports segment **Adjusted EBITDA** (ASU 2023-07), not
 
 ---
 
+## Bring your numbers — any way you have them
+
+openfpa is **not married to a connector.** Everything it ingests normalizes to one shape — `{account: amount}` — so the engine never cares where the numbers came from. And where no built-in path exists, **the AI writes the ingestion**: the Fox example's [`pull_edgar.py`](examples/foxfactory/pull_edgar.py) is exactly that — a SEC-EDGAR adapter the agent built from scratch.
+
+So you connect however your numbers actually live:
+
+- **Public filings** — a 10-K / 10-Q (the Fox Factory example).
+- **Your accounting system, live** — QuickBooks or NetSuite, via their **MCP servers** (the MCP server owns the auth — openfpa never touches your credentials) or their APIs.
+- **D2C ops** — Shopify.
+- **Or just the spreadsheets on your laptop** — P&L, balance sheet, AR/AP aging, inventory. CSV/Excel in, model out. (`read_pl_csv` reads any `Account, Amount` export; richer tables like aged AR or item-level inventory get parsed to what the model needs — DSO, DIO, DPO.)
+
+No data team, no implementation project, no "is my connector supported?" The agent meets your data where it is and builds the bridge. That's the whole point of a substrate an AI extends per-business.
+
+---
+
 ## What it does
 
 ```
 config (YAML)  ─▶  revenue ─▶ cogs ─▶ opex ─▶ working capital ─▶ debt ─▶ cashflow
                                                                             │
-   trial balance / P&L CSV ─▶ (ingestion)                                   ▼
-   NetSuite · QuickBooks · Shopify ─▶ (adapters)              12-month P&L + cash flow
+   spreadsheets (P&L/BS/AR/AP/inventory) ─▶ (ingestion)                     ▼
+   QuickBooks·NetSuite (MCP/API) · 10-K · Shopify ─▶ (adapters)  12-month P&L + cash flow
                                                                             │
    scheduled weekly flows ─▶ 13-week direct-method cash ─▶ runway           ▼
                                                               board-ready briefing (md / xlsx)
@@ -102,8 +128,8 @@ config (YAML)  ─▶  revenue ─▶ cogs ─▶ opex ─▶ working capital �
 
 - **Monthly forecast engine** — config-driven (`EntityConfig`): revenue with seasonality + growth, channel-level COGS, fixed/variable OpEx, AR/AP/inventory working capital, multi-instrument debt, and an indirect-method cash flow with NOL-aware tax.
 - **13-week cash forecast** — schedule-driven direct method (`Cash13Config`): per-week receipts and disbursements, raw cash position (no auto-draws, so the liquidity gap is visible), and a runway summary (`min_cash`, `min_week`, `first_negative_week`).
-- **IO layer** — read a QuickBooks-style P&L CSV, render a markdown CFO briefing, export to Excel.
-- **Data-source adapters** — `from_netsuite` / `from_quickbooks` / `from_shopify` return a normalized `{account: amount}`. Fixture-backed out of the box; each documents its live path (SuiteQL/OAuth, QuickBooks Online, Shopify Admin API). Credentials come from your environment — never committed.
+- **IO layer** — `read_pl_csv` reads any `Account, Amount` statement export (P&L, balance sheet, …) to `{account: amount}`; render a markdown CFO briefing; export to Excel.
+- **Data-source adapters** — `from_netsuite` / `from_quickbooks` / `from_shopify` return a normalized `{account: amount}` (fixture-backed scaffolds; each documents its live path). But the toolkit isn't limited to these — connect QuickBooks/NetSuite **via MCP**, pull a 10-K, or point it at local spreadsheets, and the agent **builds the ingestion for that source** (see [`pull_edgar.py`](examples/foxfactory/pull_edgar.py)). Credentials come from the host/MCP server — never committed.
 
 ## Use it as a library
 
@@ -132,19 +158,22 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 
 | Component | Status |
 |---|---|
-| Monthly forecast engine (`pyfpa`) | ✅ Built |
-| 13-week cash engine (`pyfpa.cash13`) | ✅ Built |
-| IO layer + data-source adapters (`pyfpa.io`) | ✅ Built |
-| Runnable demo (`examples/ridgeline`) | ✅ Built |
-| Real public-company proof (`examples/foxfactory`) | ✅ Built |
-| **Claude skillset** (the hero — see below) | ✅ Built |
+| Monthly forecast engine (`pyfpa`) | Built |
+| 13-week cash engine (`pyfpa.cash13`) | Built |
+| IO layer + data-source adapters (`pyfpa.io`) | Built |
+| Runnable demo (`examples/ridgeline`) | Built |
+| Real public-company proof (`examples/foxfactory`) | Built |
+| Claude skillset (see below) | Built |
+| Self-improving backtest loop (`pyfpa.backtest` + `fpa-backtest-learn`) | Built |
+| Human corrections + vault memory (`pyfpa.memory` + `fpa-capture-correction`) | Built |
+| Cross-client portfolio learning (`pyfpa.portfolio` + `fpa-portfolio-learn`) | Built |
 
 **The skillset is the point.** The forecast engine is the substrate; the headline feature is a progressive Claude skillset (in [`skills/`](skills/), installable as a Claude plugin) that drives it across the lifecycle:
 
 1. **`fpa-learn-business`** — interview + financials → a durable business profile, and *generate bespoke skills/agents* for that company (the self-extending part).
 2. **`fpa-scaffold-model`** — build a runnable model from a trial balance.
-3. **`fpa-configure-actuals`** — wire real numbers / connect a data source (NetSuite · QuickBooks · Shopify).
-4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing` — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, D&A is a real expense — not a cash-flow freebie, a goodwill impairment is non-cash — bridge it, raw cash ≠ insolvency).
+3. **`fpa-configure-actuals`** — wire in real numbers from wherever they live: local spreadsheets, QuickBooks/NetSuite via MCP or API, a 10-K, and so on.
+4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing`, **`fpa-backtest-learn`** (scores past forecasts against your actuals and proposes ratified improvements — the self-improving loop), **`fpa-capture-correction`** (turns a human's "that's off because X" into durable memory that grounds every future forecast), and **`fpa-portfolio-learn`** (distills what generalizes across your whole book into a reusable library that seeds new clients — cross-client learning) — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, D&A is a real expense — not a cash-flow freebie, a goodwill impairment is non-cash — bridge it, raw cash ≠ insolvency).
 
 See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — a cold AI agent building a coffee-roaster forecast from a 10-minute intake and writing its own bespoke skill, *and* the same toolkit reconciling Fox Factory's real 10-K to the dollar.
 
@@ -152,7 +181,7 @@ See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — a cold AI age
 
 ```bash
 pip install -e ".[dev]"
-pytest -q          # 92 tests, all green
+pytest -q          # the full test suite
 ```
 
 ## License

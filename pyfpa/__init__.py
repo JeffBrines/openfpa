@@ -22,6 +22,19 @@ from pyfpa.analysis.divestiture import Carveout, divest, net_debt_to_ebitda
 from pyfpa.analysis.reconcile import reconcile
 from pyfpa.io.pl_csv import read_pl_csv
 from pyfpa.io.reporting import to_briefing_md, forecast_to_excel
+from pyfpa.backtest import (
+    ScoreResult, score_forecast, Snapshot, snapshot_forecast,
+    save_snapshot, load_snapshot, holdout_backtest,
+    magnitude_cap, persistent_miss, render_scorecard,
+)
+from pyfpa.memory import (
+    Override, Correction, load_corrections, save_correction, apply_corrections,
+    apply_override,
+)
+from pyfpa.portfolio import (
+    Portfolio, load_portfolio, mine_priors, find_recurring_skills,
+    validate_prior, promote_prior, promote_skill, seed_from_library,
+)
 
 __all__ = [
     "EntityConfig", "Channel", "OpexLine", "DebtInstrument",
@@ -33,4 +46,11 @@ __all__ = [
     "Sku", "sku_profitability", "pareto_breakpoint", "load_skus",
     "Segment", "segment_pnl", "roll_up_segments", "segments_to_channels",
     "Carveout", "divest", "net_debt_to_ebitda", "reconcile",
+    "ScoreResult", "score_forecast", "Snapshot", "snapshot_forecast",
+    "save_snapshot", "load_snapshot", "holdout_backtest",
+    "magnitude_cap", "persistent_miss", "render_scorecard",
+    "Override", "Correction", "load_corrections", "save_correction", "apply_corrections",
+    "apply_override",
+    "Portfolio", "load_portfolio", "mine_priors", "find_recurring_skills",
+    "validate_prior", "promote_prior", "promote_skill", "seed_from_library",
 ]

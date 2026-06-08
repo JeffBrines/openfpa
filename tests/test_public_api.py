@@ -22,6 +22,13 @@ def test_all_matches_public_api():
         "Sku", "sku_profitability", "pareto_breakpoint", "load_skus",
         "Segment", "segment_pnl", "roll_up_segments", "segments_to_channels",
         "Carveout", "divest", "net_debt_to_ebitda", "reconcile",
+        "ScoreResult", "score_forecast", "Snapshot", "snapshot_forecast",
+        "save_snapshot", "load_snapshot", "holdout_backtest",
+        "magnitude_cap", "persistent_miss", "render_scorecard",
+        "Override", "Correction", "load_corrections", "save_correction", "apply_corrections",
+        "apply_override",
+        "Portfolio", "load_portfolio", "mine_priors", "find_recurring_skills",
+        "validate_prior", "promote_prior", "promote_skill", "seed_from_library",
     }, "pyfpa.__all__ must exactly match expected public API"
 
 
