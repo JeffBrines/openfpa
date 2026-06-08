@@ -26,6 +26,7 @@ def test_all_matches_public_api():
         "save_snapshot", "load_snapshot", "holdout_backtest",
         "magnitude_cap", "persistent_miss", "render_scorecard",
         "Override", "Correction", "load_corrections", "save_correction", "apply_corrections",
+        "apply_override",
     }, "pyfpa.__all__ must exactly match expected public API"
 
 

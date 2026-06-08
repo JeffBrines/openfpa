@@ -56,3 +56,9 @@ def _set_by_path(data: dict, path: str, value: float) -> None:
         _set_segments(data, _parse_path(path), value)
     except (KeyError, IndexError, TypeError) as exc:
         raise ValueError(f"cannot apply override path {path!r}: {exc}") from exc
+
+
+def apply_override(data: dict, path: str, value: float) -> None:
+    """Set ``value`` at dotted ``path`` (supports ``name``, ``name[n]``, ``name[*]``)
+    in ``data``, in place. Public wrapper over the internal path setter."""
+    _set_by_path(data, path, value)
