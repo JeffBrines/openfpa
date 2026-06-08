@@ -1,4 +1,5 @@
 from pyfpa.config.schemas import EntityConfig
+from pyfpa.models.cashflow import cashflow_from_config
 
 
 def _base_cfg(**overrides):
@@ -27,9 +28,6 @@ def test_config_accepts_da_capex():
     cfg = _base_cfg(da_monthly=1000.0, capex_monthly=2000.0)
     assert cfg.da_monthly == 1000.0
     assert cfg.capex_monthly == 2000.0
-
-
-from pyfpa.models.cashflow import cashflow_from_config
 
 
 def test_fcf_columns_and_math():
