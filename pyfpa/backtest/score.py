@@ -34,6 +34,8 @@ def aggregate_periods(
 ) -> dict[str, float]:
     """Aggregate a chronological list of per-period actual dicts the same way
     `extract_lines` aggregates a forecast (flow=sum, stock=last, ratio=ΣGP/Σrev)."""
+    if not period_dicts:
+        return {line: 0.0 for line in score_lines}
     revenue = sum(float(d.get("revenue", 0.0)) for d in period_dicts)
     out: dict[str, float] = {}
     for line in score_lines:
@@ -63,12 +65,13 @@ def score_forecast(
     (and with non-zero actual). Per-line error reuses `reconcile`'s variance_pct.
     Weights are renormalized over the lines actually scored."""
     weights = dict(weights or DEFAULT_WEIGHTS)
-    lines = [l for l in weights if l in predicted and l in actual and actual[l] != 0]
+    lines = [line for line in weights if line in predicted and line in actual and actual[line] != 0]
     if not lines:
         return ScoreResult(fitness=0.0, per_line={}, weights={})
-    rec = reconcile({l: predicted[l] for l in lines}, {l: actual[l] for l in lines})
-    per_line = {l: float(rec.loc[l, "variance_pct"]) for l in lines}
-    total_w = sum(weights[l] for l in lines)
-    used = {l: weights[l] / total_w for l in lines}
-    fitness = sum(used[l] * abs(per_line[l]) for l in lines)
+    rec = reconcile({line: predicted[line] for line in lines},
+                    {line: actual[line] for line in lines})
+    per_line = {line: float(rec.loc[line, "variance_pct"]) for line in lines}
+    total_w = sum(weights[line] for line in lines)
+    used = {line: weights[line] / total_w for line in lines}
+    fitness = sum(used[line] * abs(per_line[line]) for line in lines)
     return ScoreResult(fitness=fitness, per_line=per_line, weights=used)

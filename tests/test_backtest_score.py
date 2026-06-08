@@ -30,8 +30,14 @@ def test_aggregate_periods_matches_extract():
     ]
     out = aggregate_periods(periods, DEFAULT_SCORE_LINES)
     assert out["revenue"] == 300.0
+    assert out["ebitda"] == 90.0
     assert out["ending_cash"] == 90.0
     assert out["gross_margin"] == pytest.approx(0.4)
+
+
+def test_aggregate_periods_empty_is_zero_filled():
+    out = aggregate_periods([], DEFAULT_SCORE_LINES)
+    assert out == {line: 0.0 for line in DEFAULT_SCORE_LINES}
 
 
 def test_score_forecast_weighted_mape():
@@ -50,4 +56,5 @@ def test_score_forecast_skips_absent_and_zero_actual_lines():
         {"ending_cash": 100.0, "ebitda": 0.0},
     )
     assert set(res.per_line) == {"ending_cash"}
+    assert res.weights == {"ending_cash": pytest.approx(1.0)}  # renormalized to the one line
     assert res.fitness == pytest.approx(0.10)
