@@ -18,12 +18,16 @@ def test_segment_pnl_columns_and_math():
     assert pvg["cogs"] == 350_000.0
     assert pvg["gross_profit"] == 150_000.0
     assert pvg["gross_margin"] == pytest.approx(0.3)
+    assert pvg["opex"] == 50_000.0
     assert pvg["segment_income"] == 100_000.0
 
 
 def test_segment_pnl_empty():
     df = segment_pnl([])
     assert df.empty
+    assert list(df.columns) == [
+        "revenue", "cogs", "gross_profit", "gross_margin", "opex", "segment_income",
+    ]
 
 
 def test_roll_up_segments_totals():
@@ -33,13 +37,18 @@ def test_roll_up_segments_totals():
     assert total["gross_profit"] == pytest.approx(1_000_000 - 660_000)
     assert total["opex"] == 120_000.0
     assert total["segment_income"] == pytest.approx(340_000 - 120_000)
+    # gross_margin must be recomputed from totals, NOT averaged across segments
+    assert total["gross_margin"] == pytest.approx(340_000 / 1_000_000)
 
 
 def test_segments_to_channels_preserves_revenue_and_cogs():
-    channels = segments_to_channels(_segs())
-    assert [c.name for c in channels] == ["PVG", "AAG", "SSG"]
+    segs = _segs() + [Segment(name="GROW", annual_revenue=100_000.0, cogs_pct=0.5,
+                              growth_rate=0.05, opex=10_000.0)]
+    channels = segments_to_channels(segs)
+    assert [c.name for c in channels] == ["PVG", "AAG", "SSG", "GROW"]
     assert all(len(c.seasonality) == 12 for c in channels)
     pvg = channels[0]
     assert pvg.annual_revenue == 500_000.0
     assert pvg.cogs_pct == 0.7
     assert pvg.growth_rate == 0.0
+    assert channels[3].growth_rate == 0.05  # non-default growth carried through

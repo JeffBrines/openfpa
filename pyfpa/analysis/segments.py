@@ -42,6 +42,8 @@ def roll_up_segments(segments: list[Segment]) -> pd.Series:
     df = segment_pnl(segments)
     if df.empty:
         return pd.Series({c: 0.0 for c in _COLUMNS})
+    # gross_margin is excluded from the sum and recomputed from totals — averaging
+    # per-segment margins would be wrong (it ignores each segment's revenue weight).
     total = df[["revenue", "cogs", "gross_profit", "opex", "segment_income"]].sum()
     total["gross_margin"] = (total["gross_profit"] / total["revenue"]) if total["revenue"] else 0.0
     return total[_COLUMNS]
