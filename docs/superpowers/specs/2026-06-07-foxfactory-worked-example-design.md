@@ -21,13 +21,14 @@ the bar is **source-auditable and honest about limitations**, not impressive-loo
 
 | Decision | Choice |
 | --- | --- |
-| Proof structure | Two phases: (A) reconcile engine vs actuals, then (B) forecast forward |
+| Proof structure | Three phases: (A) reconcile engine vs actuals, (B) forecast forward, (C) Marucci-divestiture FCF scenario |
 | Granularity | Segment-level P&L (PVG / AAG / SSG), consolidated working capital + debt + tax |
 | Home | Public repo worked-example: `examples/foxfactory/` |
 | Data source | SEC EDGAR (CIK 1424929), pulled via curl with a compliant User-Agent |
 | Forecast horizon | FY2026 + FY2027 |
 | FY2026 anchor | Anchor to Q1 FY2026 reported actuals (Q1 actual + remaining quarters forecast) |
 | Cash tool | Indirect (annual) cash flow. **`cash13` deliberately not used** — wrong tool for a $1.5B audited public company |
+| Divestiture proceeds | Model input, **default $300M** (realistic markdown from the ~$632M paid). Optional EV/EBITDA-multiple mode if Marucci EBITDA can be anchored from acquisition disclosures |
 
 ## Background facts (from EDGAR, to be re-verified by the pull script)
 
@@ -73,7 +74,8 @@ segment P&L (PVG, AAG, SSG)  →  roll up  →  consolidated P&L
 | `skills/generated/segment-rollup/SKILL.md` | Bespoke skill spawned by the headliner to roll segment P&Ls into the consolidated model. The hero artifact. |
 | `config/pvg.yaml`, `aag.yaml`, `ssg.yaml` | Per-segment P&L drivers. |
 | `config/consolidated.yaml` | Working-capital days, debt instruments, tax rate, opening balances. |
-| `run_foxf.py` | Full pipeline → reconciliation report + forecast briefing + Excel. |
+| `config/divestiture.yaml` | Marucci-sale scenario: `sale_month`, `proceeds` (default 300_000_000), optional `ebitda_multiple` + `marucci_ebitda_est`, and the Marucci carve-out drivers (revenue/margin/working-capital share of SSG). |
+| `run_foxf.py` | Full pipeline → reconciliation report + forecast briefing + divestiture scenario + Excel. |
 
 ### Engine support (new code in `pyfpa/`)
 
@@ -85,6 +87,10 @@ of self-extension:
   P&L from a list of segment P&Ls. Pure, immutable, typed.
 - `pyfpa/io/` loader for the `data/*.csv` actuals → engine inputs.
 - Reconciliation helper: `reconcile(model, actual, tolerance)` → variance rows.
+- `pyfpa/analysis/divestiture.py` — `divest(forecast, *, sale_month, proceeds, carve_out)` →
+  a new forecast with the carved-out unit removed from `sale_month` onward, proceeds
+  applied (after-tax) to debt paydown, interest recomputed, and FCF + leverage
+  recomputed. Pure, immutable: returns a new forecast, never mutates the input.
 
 ## Phase A — Reconciliation (engine math)
 
@@ -113,6 +119,29 @@ Q2–Q4 forecast). Explicit, defensible assumptions:
 **Output:** board briefing (`docs/demo/foxf-briefing.md`-style via `to_briefing_md`)
 + `forecast.xlsx`.
 
+## Phase C — Marucci-divestiture FCF scenario
+
+A capital-allocation what-if layered on the Phase B forecast: *what does selling
+Marucci do to free cash flow and leverage, and how does that change with sale timing?*
+
+Mechanics (`divest(...)`):
+
+1. **Carve out Marucci** from SSG starting at `sale_month`: remove its revenue, gross
+   margin, and working-capital contribution. Carve-out shares come from Marucci's
+   acquisition-date disclosures (revenue/EBITDA Fox cited at deal time), not segment
+   reporting — **the most assumption-heavy input in the whole exercise.**
+2. **Apply proceeds** — default **$300M** after-tax (input-driven; optional
+   `ebitda_multiple × marucci_ebitda_est` mode) → pay down the term loan.
+3. **Recompute** interest expense (lower debt), net income, FCF (operating cash flow −
+   capex), and leverage (net debt / EBITDA).
+
+**Sensitivity grid:** sale at 6 / 12 / 18 / 24 months out × proceeds cases →
+table of FCF and net-debt/EBITDA impact. Presented explicitly as a **labeled
+sensitivity**, with the standalone-Marucci estimate and its basis called out — false
+precision here would be the thing a CFO dings, so we show a band and our assumptions.
+
+**Output:** `foxf-divestiture.md` scenario brief + a scenario tab in the Excel.
+
 ## "Where the engine strains" (documented in the deliverable)
 
 Honest limitations, surfaced not hidden:
@@ -120,7 +149,10 @@ Honest limitations, surfaced not hidden:
 1. **No segment layer** in the base engine → solved by the generated `segment-rollup`
    skill + `pyfpa/analysis/segments.py`.
 2. **No M&A modeling** → Marucci's Nov-2023 stub distorts FY23→FY24 SSG YoY; we
-   separate organic vs acquired growth and state it.
+   separate organic vs acquired growth and state it. The Phase C divestiture is a
+   lightweight carve-out scenario, **not** a full M&A engine, and rests on
+   estimated standalone-Marucci economics (acquisition-date disclosures) — the most
+   assumption-heavy part, shown as a labeled sensitivity.
 3. **Monthly engine vs quarterly reporting** → we run annual forecast years;
    intra-year quarterly phasing is a noted deferral (FY2026 still anchored to the Q1
    print, but Q2–Q4 are modeled in aggregate, not individually seasonalized).
@@ -145,13 +177,17 @@ Honest limitations, surfaced not hidden:
    assumptions, anchored to Q1 FY2026.
 4. The generated `segment-rollup` skill is real and cites profile facts (proves
    self-extension on a hard case).
-5. `pyfpa/analysis/segments.py` is unit-tested (repo's 80% norm); full suite green.
-6. A reader-grade briefing + Excel a CFO would respect — and an honest limitations
+5. `pyfpa/analysis/segments.py` and `divestiture.py` are unit-tested (repo's 80%
+   norm); full suite green.
+6. Phase C: a divestiture sensitivity (sale timing × proceeds) showing FCF + leverage
+   impact, with the standalone-Marucci basis stated.
+7. A reader-grade briefing + Excel a CFO would respect — and an honest limitations
    section.
 
 ## Testing
 
-- Unit tests for `roll_up_segments`, the actuals loader, and `reconcile`.
+- Unit tests for `roll_up_segments`, the actuals loader, `reconcile`, and `divest`
+  (proceeds → debt paydown → interest → FCF, and immutability of the input forecast).
 - A reconciliation assertion test: engine output vs committed FY2024 actuals within
   tolerance (acts as a regression guard on the engine's accounting).
 - Existing suite stays green.
