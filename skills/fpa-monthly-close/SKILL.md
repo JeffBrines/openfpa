@@ -36,4 +36,4 @@ Fold the latest actuals into the model, refresh the forward forecast from the la
 
 ## Next
 
-Close done → **fpa-cash-runway** (near-term liquidity) and **fpa-board-briefing** (the writeup).
+Close done → **fpa-cash-runway** (near-term liquidity) and **fpa-board-briefing** (the writeup) and **fpa-backtest-learn** (score this close against the prior forecast and learn from the miss).

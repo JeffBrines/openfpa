@@ -16,5 +16,15 @@
     "fp&a",
     "netsuite",
     "quickbooks"
+  ],
+  "skills": [
+    { "name": "fpa-learn-business",    "source": "./skills/fpa-learn-business" },
+    { "name": "fpa-scaffold-model",    "source": "./skills/fpa-scaffold-model" },
+    { "name": "fpa-configure-actuals", "source": "./skills/fpa-configure-actuals" },
+    { "name": "fpa-cfo-judgment",      "source": "./skills/fpa-cfo-judgment" },
+    { "name": "fpa-monthly-close",     "source": "./skills/fpa-monthly-close" },
+    { "name": "fpa-cash-runway",       "source": "./skills/fpa-cash-runway" },
+    { "name": "fpa-board-briefing",    "source": "./skills/fpa-board-briefing" },
+    { "name": "fpa-backtest-learn",    "source": "./skills/fpa-backtest-learn" }
   ]
 }
