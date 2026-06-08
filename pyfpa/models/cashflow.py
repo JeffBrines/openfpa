@@ -35,14 +35,21 @@ def cashflow_from_config(cfg: EntityConfig) -> pd.DataFrame:
     wc = working_capital_from_config(cfg, revenue, cogs)
     debt = debt_from_config(cfg)
 
+    n = len(revenue.index)
+    da = pd.Series([cfg.da_monthly] * n, index=revenue.index)
+    capex = pd.Series([cfg.capex_monthly] * n, index=revenue.index)
+
     gross_profit = revenue["total"] - cogs["total"]
-    ebitda = gross_profit - opex["total"]  # no D&A modeled, so EBITDA == EBIT here
+    ebitda = gross_profit - opex["total"]
+    ebit = ebitda - da                 # D&A is a real (non-cash) expense in the P&L...
     interest = debt["interest"]
-    pretax = ebitda - interest
+    pretax = ebit - interest
     tax = _tax_series(pretax, cfg.opening_balances.nol, cfg.tax_rate)
     net_income = pretax - tax
 
-    change_in_cash = net_income + wc["wc_cash_impact"] - debt["principal"]
+    operating_cash_flow = net_income + da + wc["wc_cash_impact"]  # ...and added back here
+    free_cash_flow = operating_cash_flow - capex
+    change_in_cash = free_cash_flow - debt["principal"]
     ending_cash = change_in_cash.cumsum() + cfg.opening_balances.cash
 
     return pd.DataFrame(
@@ -52,12 +59,16 @@ def cashflow_from_config(cfg: EntityConfig) -> pd.DataFrame:
             "gross_profit": gross_profit,
             "opex": opex["total"],
             "ebitda": ebitda,
+            "da": da,
             "interest": interest,
             "pretax_income": pretax,
             "tax": tax,
             "net_income": net_income,
             "wc_cash_impact": wc["wc_cash_impact"],
+            "operating_cash_flow": operating_cash_flow,
+            "capex": capex,
             "principal": debt["principal"],
+            "free_cash_flow": free_cash_flow,
             "change_in_cash": change_in_cash,
             "ending_cash": ending_cash,
         },

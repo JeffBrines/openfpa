@@ -21,7 +21,8 @@ A forecast that's arithmetically correct can still be wrong about reality. This 
 | **Flash cash vs GL cash** | The bank balance and the GL cash rarely tie out intraday (in-flight deposits, uncleared checks). Know which one you're quoting. |
 | **Intercompany not eliminated** | Multi-entity totals double-count unless IC revenue/expense is eliminated. A "profitable" entity may just be billing its sibling. |
 | **Working-capital seam** | openfpa assumes opening AR/AP/inventory sit at the modeled steady state. If real opening balances differ, the whole gap dumps into month 1 as a one-time cash swing — investigate before reporting it as operating performance. |
-| **EBITDA ≈ EBIT here** | The lean engine models no D&A, so `ebitda` is effectively EBIT. Don't quote it as true EBITDA if depreciation is material to the business. |
+| **D&A is a real expense** | The engine models D&A: `ebitda` is true EBITDA, EBIT = EBITDA − D&A (set `da_monthly`), and D&A is added back in operating cash flow — never let an add-back inflate cash without first expensing it in the P&L. |
+| **Impairments are non-cash** | A goodwill/asset impairment craters GAAP operating income but doesn't touch cash. Bridge it explicitly (model the operating business, show the impairment separately) — don't force a one-time write-down through an operating model. |
 | **Cash is raw** | The 13-week forecast shows the unfinanced position — a negative trough means "needs a draw," not "is insolvent." Say which. |
 
 ## How to apply

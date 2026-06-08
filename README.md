@@ -6,7 +6,35 @@
 
 `openfpa` is a deliberately **lean Python forecast engine** plus a **progressive Claude skillset** that encodes the methodology and judgment of a real finance team. The engine is small on purpose: it's the substrate an AI extends per-business, not an off-the-shelf app you configure by hand.
 
-> Built by [Guiderail](https://guiderail.example). Open-source under MIT. Runs entirely on synthetic demo data — no credentials required.
+> Built by [Guiderail](https://guiderail.example). Open-source under MIT. The demo runs on synthetic data — no credentials required — and a second worked example validates the engine against a **real public company** (Fox Factory, NASDAQ: FOXF) straight from its SEC filings.
+
+---
+
+## Mission
+
+Bring real FP&A to anyone with a spreadsheet — without the cost or the implementation project of Datarails, Cube, or Vena.
+
+Those tools hand you connectors and a modeling layer, then leave the thinking to you. openfpa flips that: **connect your data — or just point it at your spreadsheets — and let the AI do the thinking.** It asks the questions a good CFO would, builds the model, surfaces what matters, and sharpens itself against your actuals every close.
+
+Two things underneath, rarely combined:
+
+- **Hundreds of hours of real FP&A engineering** — methodology distilled from production CFO work (a trucking fleet, a bicycle company, and more), not textbook finance.
+- **A self-improving loop, inspired by [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch)** — it scores itself against *your* actuals and gets measurably better over time. AutoResearch improves against validation loss; openfpa improves against reconciliation error on your own books.
+
+Self-hosted, auditable, yours — what it learns lives as plain files in your repo, not someone else's cloud. An open-source experiment from [Guiderail](https://guiderail.example); we'd love your help making it the FP&A tool we all wish existed.
+
+---
+
+## Why not just point Claude at your books?
+
+Fair question — Claude *can* write financial code from scratch. But every run is a one-off: ad-hoc pandas, no shared structure, no test, no audit trail. Correctness by luck-of-the-run. openfpa makes correctness a property of the **system**, not of any single chat:
+
+- **A tested accounting substrate.** The plumbing (revenue → COGS → opex → working capital → debt → cash flow) is written once and **CI-verified to reconcile against a real, audited 10-K — to the dollar** ([Fox Factory](#proof-on-a-real-public-company-fox-factory-foxf), below). During this very build the engine caught a subtle bug — D&A was quietly inflating operating cash flow — fixed it once, and a test now guarantees it stays fixed. A from-scratch agent reproduces that kind of error on every run, and the wrong number looks right.
+- **Encoded CFO judgment.** Reconcile-to-the-dollar-then-bridge-the-one-offs; "segment Adjusted EBITDA isn't gross profit under ASU 2023-07"; a goodwill impairment gets *bridged*, not forced through the model. The reflexes a senior finance person has and a generic agent doesn't.
+- **Reproducible & auditable.** Config-driven, every figure source-traced to a filing, re-runnable — not a chat transcript you can't reproduce.
+- **Self-extension *with guardrails*.** The agent re-tools a *known, tested* structure per business (it generated a bespoke `segment-rollup` skill for Fox's segments) instead of emitting throwaway scripts. Template-grade rigor **and** bespoke-grade fit.
+
+**Bare Claude is a brilliant analyst with a blank spreadsheet. openfpa is the firm's tested model engine, the encoded house methodology, and the review checklist — the rails the agent drives on, and the gauges that catch it when it's wrong.**
 
 ---
 
@@ -38,6 +66,25 @@ That runs the full pipeline on a synthetic premium D2C brand (**Ridgeline Chair 
 The story the model tells: a seasonal inventory business that **goes cash-negative in week 3** as the spring inventory build lands before sell-through collects, troughs at **−$146K**, then recovers — i.e. *"you need a ~$150–200K credit line to bridge the build."* That's the kind of insight this toolkit is built to surface automatically.
 
 The full briefing (with the month-by-month table) is committed at [`docs/demo/briefing.md`](docs/demo/briefing.md).
+
+---
+
+## Proof on a real public company: Fox Factory (FOXF)
+
+Ridgeline is synthetic. To show the engine on *real, messy, audited* numbers, [`examples/foxfactory/`](examples/foxfactory/) runs the whole toolkit against **Fox Factory Holding Corp.**, pulled live from SEC EDGAR (every figure traces to a filing in [`data/SOURCES.md`](examples/foxfactory/data/SOURCES.md)):
+
+```bash
+python examples/foxfactory/pull_edgar.py   # refresh actuals from SEC EDGAR
+python examples/foxfactory/run_foxf.py     # reconcile + forecast + divestiture
+```
+
+- **Phase A — reconciliation.** Driven with Fox's actual segment net sales, COGS, working-capital days, D&A and capex, the engine reproduces reported **revenue, gross profit, Adjusted EBITDA and the working-capital cash mechanic to the dollar** for FY2024 and FY2025. The $557M FY2025 goodwill impairment and discrete tax benefits are shown as an explicit bridge — the lean engine models the operating business, not one-time non-cash charges.
+- **Phase B — forecast.** A segment-level (PVG / AAG / SSG → consolidated) FY2026–FY2027 forecast, anchored to the reported Q1 FY2026 print.
+- **Phase C — capital allocation.** A labeled sensitivity: what selling **Marucci** does to free cash flow and leverage across sale timings and proceeds.
+
+It self-extends, too: Fox reports segment **Adjusted EBITDA** (ASU 2023-07), not segment gross profit, so the `fpa-learn-business` phase generates a bespoke [`segment-rollup`](examples/foxfactory/skills/generated/segment-rollup/SKILL.md) skill to fit — exactly the per-business re-tooling the skillset is built for.
+
+**This reconciliation runs in CI.** Every push, on Python 3.11/3.12/3.13, verifies the engine still ties to Fox's reported FY2024–FY2025 numbers. It's not a marketing claim you take on faith — it's a test that goes red the moment it stops being true.
 
 ---
 
@@ -79,7 +126,7 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 - **Lean by intent.** Small, pure `*_from_config` functions; immutable pandas; pydantic-validated config; disk I/O confined to the `io/` layer. The engine is meant to be *read and extended by an AI*, so it stays small and conventional.
 - **Config is the source of truth.** Every number lives in YAML.
 - **Honest cash.** The 13-week forecast shows the raw, unfinanced position — it never hides a shortfall behind an automatic LOC draw.
-- **Synthetic-only in the repo.** Zero real client data. The demo company is fictional; adapters ship with synthetic fixtures.
+- **Zero real *client* data.** The demo company is fictional and adapters ship with synthetic fixtures. The one real-data example (Fox Factory) uses **only public SEC filings**, fetched on demand and fully source-traced.
 
 ## Project status & roadmap
 
@@ -89,6 +136,7 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 | 13-week cash engine (`pyfpa.cash13`) | ✅ Built |
 | IO layer + data-source adapters (`pyfpa.io`) | ✅ Built |
 | Runnable demo (`examples/ridgeline`) | ✅ Built |
+| Real public-company proof (`examples/foxfactory`) | ✅ Built |
 | **Claude skillset** (the hero — see below) | ✅ Built |
 
 **The skillset is the point.** The forecast engine is the substrate; the headline feature is a progressive Claude skillset (in [`skills/`](skills/), installable as a Claude plugin) that drives it across the lifecycle:
@@ -96,15 +144,15 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 1. **`fpa-learn-business`** — interview + financials → a durable business profile, and *generate bespoke skills/agents* for that company (the self-extending part).
 2. **`fpa-scaffold-model`** — build a runnable model from a trial balance.
 3. **`fpa-configure-actuals`** — wire real numbers / connect a data source (NetSuite · QuickBooks · Shopify).
-4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing` — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, EBITDA≈EBIT here, raw cash ≠ insolvency).
+4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing` — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, D&A is a real expense — not a cash-flow freebie, a goodwill impairment is non-cash — bridge it, raw cash ≠ insolvency).
 
-See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — including a cold AI agent building a coffee-roaster forecast from a 10-minute intake and proposing its own bespoke skill.
+See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — a cold AI agent building a coffee-roaster forecast from a 10-minute intake and writing its own bespoke skill, *and* the same toolkit reconciling Fox Factory's real 10-K to the dollar.
 
 ## Development
 
 ```bash
 pip install -e ".[dev]"
-pytest -q          # 63 tests, all green
+pytest -q          # 92 tests, all green
 ```
 
 ## License
