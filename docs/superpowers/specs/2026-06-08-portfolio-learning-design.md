@@ -81,15 +81,17 @@ library/
   across ≥ `min_support` clients → a `SkillCandidate` (source = one client's copy).
 
 `pyfpa/portfolio/validate.py`
-- `class ValidationResult(BaseModel)`: `mean_delta: float`, `n_held_out: int`, `validated: bool`.
-- `validate_prior(candidate, held_out_clients, *, tolerance=0.0) -> ValidationResult` — for each
-  held-out client (type-matched, NOT in `candidate.support`): take `best_snapshot`, recover its
-  actuals, apply the candidate's driver=value override (`pyfpa.memory._set_by_path` on the
-  assumptions), re-run `cashflow_from_config` + `extract_lines`, `score_forecast` vs recovered
-  actuals → `delta = new_fitness − snapshot_fitness`. `mean_delta` = mean over held-out clients.
-  **A prior is `validated` if `mean_delta ≤ tolerance`** — i.e. forcing the prior onto clients it
-  never came from does not degrade their fit (a robust default). Zero held-out clients →
-  `validated=False, n_held_out=0` (recurrence-only, judgment).
+- `class ValidationResult(BaseModel)`: `mean_delta: float`, `n_folds: int`, `validated: bool`.
+- `validate_prior(driver: str, type_clients: list[ClientRef], *, tolerance=0.0) -> ValidationResult`
+  — **leave-one-out** across the type's clients. For each client C: derive the prior value as the
+  median of `driver` across the **other** type clients; take `best_snapshot(C)`, recover its actuals,
+  apply the override `driver = that median` (`pyfpa.memory.apply_override` on the assumptions),
+  re-run `cashflow_from_config` + `extract_lines`, `score_forecast` vs recovered actuals →
+  `delta = new_fitness − snapshot_fitness`. `mean_delta` = mean over the folds.
+  **A prior is `validated` if `mean_delta ≤ tolerance`** — i.e. a peer-derived value does not degrade
+  the held-out client's fit (a robust default). Fewer than 2 usable clients →
+  `validated=False, n_folds=<count>` (recurrence-only, judgment). Always produces an out-of-sample
+  estimate when ≥2 clients have a scored snapshot — no dependence on the candidate's support set.
 
 `pyfpa/portfolio/library.py`
 - `load_library(library_path) -> dict` (priors by type + skill names) / writers:
@@ -101,6 +103,10 @@ library/
   Loop A refines from there). Priors are seeds, not mandates.
 
 `pyfpa/portfolio/__init__.py` re-exports; `pyfpa/__init__.py` exposes the public names.
+
+**Small `pyfpa.memory` touch-up:** promote the existing private `_set_by_path` to a public
+`apply_override(data: dict, path: str, value: float) -> None` (same logic) so the portfolio
+package doesn't reach into a private helper. `apply_corrections` keeps using it internally.
 
 ## Skill — `skills/fpa-portfolio-learn/SKILL.md`
 
@@ -131,8 +137,9 @@ priors and offers the promoted skills. Client #10 inherits what generalized acro
    ≥ `min_support` clients; a scattered driver yields no candidate.
 2. `find_recurring_skills` returns a candidate for a skill name recurring across ≥ `min_support`
    clients; below that, none.
-3. `validate_prior` computes mean cross-client fitness delta via `recover_actuals` + override +
-   re-score; `validated` iff `mean_delta ≤ tolerance`; zero held-out → `validated=False`.
+3. `validate_prior` computes the leave-one-out mean cross-client fitness delta (peer-derived
+   value per fold) via `recover_actuals` + override + re-score; `validated` iff
+   `mean_delta ≤ tolerance` with `n_folds ≥ 2`; fewer than 2 usable clients → `validated=False`.
 4. `seed_from_library` applies promoted priors to a new client's config (new cfg, input unmutated).
 5. Promotions are logged in `library-log.md`, reversible.
 6. `pyfpa.portfolio` unit-tested (repo's 80% norm); full suite green; all local (no network).
@@ -144,10 +151,20 @@ priors and offers the promoted skills. Client #10 inherits what generalized acro
 - `mine_priors`: synthetic portfolio where DIO clusters tight across 3 clients → one candidate at
   the median; a scattered driver → none; <min_support → none.
 - `find_recurring_skills`: a generated skill name in 3 clients → candidate; in 1 → none.
-- `validate_prior`: held-out client whose best assumptions already match the prior → `mean_delta ≈ 0`,
-  validated; a client the prior degrades → positive delta, not validated; zero held-out → not validated.
+- `validate_prior` (leave-one-out): 3 clients whose `driver` already clusters tight → peer-derived
+  value per fold ≈ each client's own → `mean_delta ≈ 0`, validated; a portfolio where the driver is
+  scattered → positive mean_delta, not validated; <2 usable clients → `validated=False`.
 - `seed_from_library`: a promoted prior seeds the driver in a base cfg; input unmutated.
 - `promote_*` + `load_library` round-trip; `library-log.md` written.
+
+## Docs (README)
+
+The implementation includes a README pass — not just a one-line roadmap row, but the
+**compounding story** now that the full picture exists: engine → real-data proof (Fox) →
+per-client self-improvement (Loop A) → human corrections/memory → **cross-client portfolio
+learning (Loop B)**. Add `fpa-portfolio-learn` to the skillset list, a roadmap row
+(`pyfpa.portfolio` + `fpa-portfolio-learn`), and a short "how it compounds" paragraph tying the
+two loops together (a fractional CFO's practice gets smarter with every client).
 
 ## Scope boundaries (YAGNI)
 
