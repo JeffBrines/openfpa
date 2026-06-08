@@ -13,7 +13,7 @@ import pandas as pd
 from pyfpa.analysis.divestiture import Carveout, divest, net_debt_to_ebitda
 from pyfpa.analysis.segments import Segment, roll_up_segments, segments_to_channels
 from pyfpa.config.schemas import (
-    Channel, DebtInstrument, EntityConfig, OpeningBalances, OpexLine, WorkingCapitalConfig,
+    DebtInstrument, EntityConfig, OpeningBalances, OpexLine, WorkingCapitalConfig,
 )
 from pyfpa.models.cashflow import cashflow_from_config
 
@@ -24,10 +24,6 @@ SEGMENT_NAMES = ("PVG", "AAG", "SSG")
 # --------------------------------------------------------------------------- #
 # Data access
 # --------------------------------------------------------------------------- #
-def _table(name: str) -> pd.DataFrame:
-    return pd.read_csv(DATA / name).set_index(pd.read_csv(DATA / name).columns[0])
-
-
 def income_statement() -> pd.DataFrame:
     return pd.read_csv(DATA / "income_statement.csv").set_index("line")
 
