@@ -188,6 +188,12 @@ pip install -e ".[dev]"
 pytest -q          # the full test suite
 ```
 
+## Contributing
+
+It's early and help is welcome — bug reports, a sharper piece of CFO judgment, a new
+data-source ingestion, or a whole industry pack. See [`CONTRIBUTING.md`](CONTRIBUTING.md)
+for setup, the workflow, and what's most useful to work on.
+
 ## License
 
 MIT — see [LICENSE](LICENSE). Built and maintained by **Guiderail**.
