@@ -38,6 +38,17 @@ Fair question — Claude *can* write financial code from scratch. But every run 
 
 ---
 
+## How it compounds
+
+openfpa isn't static — it gets *better the more you use it*, on two loops, both with your data staying in your own repo:
+
+- **Per client (Loop A).** Every close, it scores its last forecast against your actuals and proposes ratified tweaks — the model gets better at *this* business. Human corrections feed the same memory: the highest-signal fixes, captured durably as plain markdown you own.
+- **Across your book (Loop B).** For a fractional CFO with many clients, it distills what *generalizes* — validated by leave-one-out cross-client backtesting (a pattern must not degrade the clients it wasn't learned from) — into a local library that seeds every new client. **Client #10 starts smarter than client #1.**
+
+It's [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch) idea applied to FP&A: a cheap, objective fitness metric — *reconciliation error against your own books* — drives measurable self-improvement at the client level **and** the portfolio level. Nothing phones home.
+
+---
+
 ## See it in 30 seconds
 
 ```bash
@@ -140,13 +151,14 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 | **Claude skillset** (the hero — see below) | ✅ Built |
 | Self-improving backtest loop (`pyfpa.backtest` + `fpa-backtest-learn`) | ✅ Built |
 | Human corrections + vault memory (`pyfpa.memory` + `fpa-capture-correction`) | ✅ Built |
+| Cross-client portfolio learning (`pyfpa.portfolio` + `fpa-portfolio-learn`) | ✅ Built |
 
 **The skillset is the point.** The forecast engine is the substrate; the headline feature is a progressive Claude skillset (in [`skills/`](skills/), installable as a Claude plugin) that drives it across the lifecycle:
 
 1. **`fpa-learn-business`** — interview + financials → a durable business profile, and *generate bespoke skills/agents* for that company (the self-extending part).
 2. **`fpa-scaffold-model`** — build a runnable model from a trial balance.
 3. **`fpa-configure-actuals`** — wire real numbers / connect a data source (NetSuite · QuickBooks · Shopify).
-4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing`, **`fpa-backtest-learn`** (scores past forecasts against your actuals and proposes ratified improvements — the self-improving loop), and **`fpa-capture-correction`** (turns a human's "that's off because X" into durable memory that grounds every future forecast) — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, D&A is a real expense — not a cash-flow freebie, a goodwill impairment is non-cash — bridge it, raw cash ≠ insolvency).
+4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing`, **`fpa-backtest-learn`** (scores past forecasts against your actuals and proposes ratified improvements — the self-improving loop), **`fpa-capture-correction`** (turns a human's "that's off because X" into durable memory that grounds every future forecast), and **`fpa-portfolio-learn`** (distills what generalizes across your whole book into a reusable library that seeds new clients — cross-client learning) — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, D&A is a real expense — not a cash-flow freebie, a goodwill impairment is non-cash — bridge it, raw cash ≠ insolvency).
 
 See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — a cold AI agent building a coffee-roaster forecast from a 10-minute intake and writing its own bespoke skill, *and* the same toolkit reconciling Fox Factory's real 10-K to the dollar.
 

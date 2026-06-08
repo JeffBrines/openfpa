@@ -28,14 +28,16 @@ Before scaffolding any model, learn the business. This produces two artifacts: a
 
 2. **Write the business profile** to `.fpa/business-profile.md` (committed). Capture: entity structure, revenue model + channels, cost drivers, seasonality, working-capital rhythm, financing, and the quirks. This is the contract the rest of the toolkit reads.
 
-3. **Identify gaps the 7 standard skills don't cover**, and propose bespoke skills/agents:
+3. **Seed from your library.** If a portfolio library exists, start the model from what generalized across your same-type clients: `cfg = pyfpa.seed_from_library(library_path, business_type, cfg)` (priors are seeds — this client's loop refines them). Offer any promoted skills for the type.
+
+4. **Identify gaps the 7 standard skills don't cover**, and propose bespoke skills/agents:
    - Product company with SKUs → a `sku-profitability` skill
    - SaaS → an `arr-waterfall` / cohort-retention skill
    - Logistics/fleet → a `driver-cost-scorecard` skill
 
-4. **Generate them** following `superpowers:writing-skills` discipline, into `skills/generated/` (and `agents/generated/`). Each generated skill MUST cite the profile facts that justify it.
+5. **Generate them** following `superpowers:writing-skills` discipline, into `skills/generated/` (and `agents/generated/`). Each generated skill MUST cite the profile facts that justify it.
 
-5. **Apply existing corrections.** Before forecasting, fold in human corrections: `pyfpa.apply_corrections(cfg, pyfpa.load_corrections('.fpa/corrections'))`. Route any `type: structural` corrections through this skill's skill-generation path as *pre-ratified* proposals (the human already authored them — don't wait for backtest misses).
+6. **Apply existing corrections.** Before forecasting, fold in human corrections: `pyfpa.apply_corrections(cfg, pyfpa.load_corrections('.fpa/corrections'))`. Route any `type: structural` corrections through this skill's skill-generation path as *pre-ratified* proposals (the human already authored them — don't wait for backtest misses).
 
 ## Guardrails (self-extending, NOT self-executing)
 

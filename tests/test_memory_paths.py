@@ -31,3 +31,12 @@ def test_index_into_non_list_raises_clear_valueerror():
     # a scalar can't be indexed with [*]/[n] — error names the offending key + type
     with pytest.raises(ValueError, match="expects a list"):
         _set_by_path({"tax_rate": 0.21}, "tax_rate[*]", 0.25)
+
+
+from pyfpa.memory.paths import apply_override
+
+
+def test_apply_override_is_public_set_by_path():
+    data = {"working_capital": {"dio_days": 30.0}}
+    apply_override(data, "working_capital.dio_days", 45.0)
+    assert data["working_capital"]["dio_days"] == 45.0
