@@ -10,6 +10,19 @@
 
 ---
 
+## Why not just point Claude at your books?
+
+Fair question — Claude *can* write financial code from scratch. But every run is a one-off: ad-hoc pandas, no shared structure, no test, no audit trail. Correctness by luck-of-the-run. openfpa makes correctness a property of the **system**, not of any single chat:
+
+- **A tested accounting substrate.** The plumbing (revenue → COGS → opex → working capital → debt → cash flow) is written once and **CI-verified to reconcile against a real, audited 10-K — to the dollar** ([Fox Factory](#proof-on-a-real-public-company-fox-factory-foxf), below). During this very build the engine caught a subtle bug — D&A was quietly inflating operating cash flow — fixed it once, and a test now guarantees it stays fixed. A from-scratch agent reproduces that kind of error on every run, and the wrong number looks right.
+- **Encoded CFO judgment.** Reconcile-to-the-dollar-then-bridge-the-one-offs; "segment Adjusted EBITDA isn't gross profit under ASU 2023-07"; a goodwill impairment gets *bridged*, not forced through the model. The reflexes a senior finance person has and a generic agent doesn't.
+- **Reproducible & auditable.** Config-driven, every figure source-traced to a filing, re-runnable — not a chat transcript you can't reproduce.
+- **Self-extension *with guardrails*.** The agent re-tools a *known, tested* structure per business (it generated a bespoke `segment-rollup` skill for Fox's segments) instead of emitting throwaway scripts. Template-grade rigor **and** bespoke-grade fit.
+
+**Bare Claude is a brilliant analyst with a blank spreadsheet. openfpa is the firm's tested model engine, the encoded house methodology, and the review checklist — the rails the agent drives on, and the gauges that catch it when it's wrong.**
+
+---
+
 ## See it in 30 seconds
 
 ```bash
@@ -55,6 +68,8 @@ python examples/foxfactory/run_foxf.py     # reconcile + forecast + divestiture
 - **Phase C — capital allocation.** A labeled sensitivity: what selling **Marucci** does to free cash flow and leverage across sale timings and proceeds.
 
 It self-extends, too: Fox reports segment **Adjusted EBITDA** (ASU 2023-07), not segment gross profit, so the `fpa-learn-business` phase generates a bespoke [`segment-rollup`](examples/foxfactory/skills/generated/segment-rollup/SKILL.md) skill to fit — exactly the per-business re-tooling the skillset is built for.
+
+**This reconciliation runs in CI.** Every push, on Python 3.11/3.12/3.13, verifies the engine still ties to Fox's reported FY2024–FY2025 numbers. It's not a marketing claim you take on faith — it's a test that goes red the moment it stops being true.
 
 ---
 
@@ -114,15 +129,15 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 1. **`fpa-learn-business`** — interview + financials → a durable business profile, and *generate bespoke skills/agents* for that company (the self-extending part).
 2. **`fpa-scaffold-model`** — build a runnable model from a trial balance.
 3. **`fpa-configure-actuals`** — wire real numbers / connect a data source (NetSuite · QuickBooks · Shopify).
-4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing` — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, EBITDA≈EBIT here, raw cash ≠ insolvency).
+4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing` — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, D&A is a real expense — not a cash-flow freebie, a goodwill impairment is non-cash — bridge it, raw cash ≠ insolvency).
 
-See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — including a cold AI agent building a coffee-roaster forecast from a 10-minute intake and proposing its own bespoke skill.
+See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — a cold AI agent building a coffee-roaster forecast from a 10-minute intake and writing its own bespoke skill, *and* the same toolkit reconciling Fox Factory's real 10-K to the dollar.
 
 ## Development
 
 ```bash
 pip install -e ".[dev]"
-pytest -q          # 63 tests, all green
+pytest -q          # 92 tests, all green
 ```
 
 ## License
