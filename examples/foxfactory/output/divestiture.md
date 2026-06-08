@@ -20,5 +20,19 @@ proceeds are excluded from FCF; they reduce net debt for the leverage line.
 
 Selling Marucci *lowers* 2-year FCF (you give up its cash generation) but also
 *lowers leverage* (proceeds retire debt). The later the sale, the more Marucci
-FCF is retained first. Whether the deleveraging is worth the lost FCF is the
+FCF is retained first.
+
+### Proceeds sensitivity (sale held at 12 months)
+
+Price is an input (default $300M) or an EV/EBITDA exit multiple on estimated
+Marucci EBITDA (~$75.0M). More proceeds retire more debt.
+
+| Sale price | Proceeds | 2-yr Free Cash Flow | Net debt / EBITDA |
+|---|--:|--:|--:|
+| At cost (~$567M paid) | $567.2M | $200.8M | net cash |
+| Default markdown | $300.0M | $184.1M | 1.27x |
+| 8x EBITDA | $600.0M | $202.8M | net cash |
+| 12x EBITDA | $900.0M | $221.6M | net cash |
+
+Whether the deleveraging is worth the lost FCF — and at what price — is the
 capital-allocation question this sensitivity frames.

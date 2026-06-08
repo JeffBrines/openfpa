@@ -40,6 +40,18 @@ def segment_table() -> pd.DataFrame:
     return pd.read_csv(DATA / "segments.csv")
 
 
+def q1_values() -> tuple[float, float]:
+    """(Q1 FY2025, Q1 FY2026) reported net sales — the FY2026 forecast anchor."""
+    q = pd.read_csv(DATA / "quarterly.csv").set_index("line")
+    return float(q.loc["net_sales", "Q1_FY2025"]), float(q.loc["net_sales", "Q1_FY2026"])
+
+
+def q1_yoy() -> float:
+    """Reported Q1 FY2026 vs Q1 FY2025 net-sales growth — the FY2026 forecast anchor."""
+    prev, curr = q1_values()
+    return curr / prev - 1
+
+
 def segments_for_year(fy: str) -> list[Segment]:
     """Actual segments for a fiscal year column (e.g. 'FY2024') as net sales +
     Adjusted-EBITDA margin."""
@@ -298,8 +310,13 @@ def marucci_carveout() -> Carveout:
     )
 
 
+def marucci_ebitda() -> float:
+    return MARUCCI["revenue"] * MARUCCI["ebitda_margin"]
+
+
 def proceeds_from_multiple(multiple: float) -> float:
-    return multiple * MARUCCI["revenue"] * MARUCCI["ebitda_margin"]
+    """Sale proceeds as an EV/EBITDA exit multiple on estimated Marucci EBITDA."""
+    return multiple * marucci_ebitda()
 
 
 def _run_rate_leverage(frame: pd.DataFrame, debt_balance: float) -> float:
@@ -330,3 +347,32 @@ def divestiture_grid(forecast: pd.DataFrame, debt_balance: float,
             "net_debt_to_ebitda": _run_rate_leverage(scn, debt_balance - proceeds),
         })
     return pd.DataFrame(rows).set_index("scenario")
+
+
+# Proceeds cases: at-cost (what Fox paid), the user default markdown, and two
+# EV/EBITDA exit multiples on estimated Marucci EBITDA.
+PROCEEDS_CASES = (
+    ("At cost (~$567M paid)", 567_194_000.0),
+    ("Default markdown", DEFAULT_PROCEEDS),
+    ("8x EBITDA", None),
+    ("12x EBITDA", None),
+)
+
+
+def proceeds_sensitivity(forecast: pd.DataFrame, debt_balance: float,
+                         sale_month: int = 12) -> pd.DataFrame:
+    """Hold the sale timing fixed; vary the sale price. More proceeds → more debt
+    retired → lower leverage and (via interest saved) marginally higher FCF."""
+    carve = marucci_carveout()
+    multiples = {"8x EBITDA": 8.0, "12x EBITDA": 12.0}
+    rows = []
+    for label, fixed in PROCEEDS_CASES:
+        proceeds = fixed if fixed is not None else proceeds_from_multiple(multiples[label])
+        scn = divest(forecast, carve, sale_month=sale_month, proceeds=proceeds,
+                     annual_rate=DEBT_RATE, tax_rate=FORECAST["FY2026"]["tax_rate"])
+        rows.append({
+            "proceeds_case": label, "proceeds": proceeds,
+            "two_yr_fcf": float(scn["free_cash_flow"].sum()),
+            "net_debt_to_ebitda": _run_rate_leverage(scn, debt_balance - proceeds),
+        })
+    return pd.DataFrame(rows).set_index("proceeds_case")

@@ -14,6 +14,9 @@ Filed in these 10-Ks:
 - FY2025 (period end 2026-01-02): accession 000142492926000012
 - Q1 FY2026 (period end 2026-04-03): latest 10-Q (most recent quarterly value per concept)
 
+`quarterly.csv` holds the two most recent Q1 net-sales prints (the FY2026
+forecast anchor), selected as the ~90-day periods starting in early January.
+
 ## Segment net sales + Adjusted EBITDA
 
 FY2025 10-K segment footnote: https://www.sec.gov/Archives/edgar/data/1424929/000142492926000012/R106.htm

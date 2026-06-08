@@ -1,7 +1,9 @@
 # Phase B — FY2026-FY2027 segment-level forecast
 
 Base = FY2025 actuals. FY2026 net-sales growth is anchored to the reported
-Q1 FY2026 print (+3.8% YoY). Adjusted-EBITDA margins step modestly off FY2025.
+Q1 FY2026 print ($368.7M vs Q1 FY2025 $355.0M = **+3.8% YoY**;
+the modeled segment blend below is +3.6%). Adjusted-EBITDA margins step modestly
+off FY2025.
 
 ## Consolidated
 

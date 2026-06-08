@@ -25,6 +25,11 @@ def _m(v: float) -> str:
     return f"-${abs(v) / 1e6:,.1f}M" if v < 0 else f"${v / 1e6:,.1f}M"
 
 
+def _lev(x: float) -> str:
+    """Leverage; a negative net-debt position reads as 'net cash', not '-2.1x'."""
+    return "net cash" if x < 0 else f"{x:.2f}x"
+
+
 # --------------------------------------------------------------------------- #
 # Phase A
 # --------------------------------------------------------------------------- #
@@ -76,11 +81,15 @@ def _annual(forecast: pd.DataFrame, year: int) -> pd.Series:
 
 
 def phase_b(forecast: pd.DataFrame, segs: dict) -> str:
+    q1_prev, q1_curr = fm.q1_values()
+    q1 = fm.q1_yoy()
     lines = [
         "# Phase B — FY2026-FY2027 segment-level forecast",
         "",
         "Base = FY2025 actuals. FY2026 net-sales growth is anchored to the reported",
-        "Q1 FY2026 print (+3.8% YoY). Adjusted-EBITDA margins step modestly off FY2025.",
+        f"Q1 FY2026 print ({_m(q1_curr)} vs Q1 FY2025 {_m(q1_prev)} = **{q1 * 100:+.1f}% YoY**;",
+        "the modeled segment blend below is +3.6%). Adjusted-EBITDA margins step modestly",
+        "off FY2025.",
         "",
         "## Consolidated",
         "",
@@ -112,10 +121,11 @@ def phase_b(forecast: pd.DataFrame, segs: dict) -> str:
 # --------------------------------------------------------------------------- #
 # Phase C
 # --------------------------------------------------------------------------- #
-def phase_c(forecast: pd.DataFrame) -> tuple[str, pd.DataFrame]:
+def phase_c(forecast: pd.DataFrame) -> tuple[str, pd.DataFrame, pd.DataFrame]:
     bs = fm.balance_sheet()
     debt = float(bs.loc["long_term_debt_total", "FY2025"])
     grid = fm.divestiture_grid(forecast, debt_balance=debt)
+    proceeds_grid = fm.proceeds_sensitivity(forecast, debt_balance=debt, sale_month=12)
     lines = [
         "# Phase C — Marucci divestiture sensitivity",
         "",
@@ -135,16 +145,33 @@ def phase_c(forecast: pd.DataFrame) -> tuple[str, pd.DataFrame]:
         "|---|--:|--:|",
     ]
     for name, r in grid.iterrows():
-        lines.append(f"| {name} | {_m(r['two_yr_fcf'])} | {r['net_debt_to_ebitda']:.2f}x |")
+        lines.append(f"| {name} | {_m(r['two_yr_fcf'])} | {_lev(r['net_debt_to_ebitda'])} |")
     lines += [
         "",
         "Selling Marucci *lowers* 2-year FCF (you give up its cash generation) but also",
         "*lowers leverage* (proceeds retire debt). The later the sale, the more Marucci",
-        "FCF is retained first. Whether the deleveraging is worth the lost FCF is the",
+        "FCF is retained first.",
+        "",
+        "### Proceeds sensitivity (sale held at 12 months)",
+        "",
+        "Price is an input (default $300M) or an EV/EBITDA exit multiple on estimated",
+        f"Marucci EBITDA (~{_m(fm.marucci_ebitda())}). More proceeds retire more debt.",
+        "",
+        "| Sale price | Proceeds | 2-yr Free Cash Flow | Net debt / EBITDA |",
+        "|---|--:|--:|--:|",
+    ]
+    for name, r in proceeds_grid.iterrows():
+        lines.append(
+            f"| {name} | {_m(r['proceeds'])} | {_m(r['two_yr_fcf'])} | "
+            f"{_lev(r['net_debt_to_ebitda'])} |"
+        )
+    lines += [
+        "",
+        "Whether the deleveraging is worth the lost FCF — and at what price — is the",
         "capital-allocation question this sensitivity frames.",
         "",
     ]
-    return "\n".join(lines), grid
+    return "\n".join(lines), grid, proceeds_grid
 
 
 # --------------------------------------------------------------------------- #
@@ -154,14 +181,15 @@ def main() -> None:
 
     (OUT / "reconciliation.md").write_text(phase_a())
     (OUT / "forecast-briefing.md").write_text(phase_b(forecast, segs))
-    divest_md, grid = phase_c(forecast)
+    divest_md, grid, proceeds_grid = phase_c(forecast)
     (OUT / "divestiture.md").write_text(divest_md)
 
     with pd.ExcelWriter(OUT / "foxf-forecast.xlsx") as xl:
         forecast.to_excel(xl, sheet_name="Forecast (monthly)")
         for fy in ("FY2026", "FY2027"):
             segment_pnl(segs[fy]).to_excel(xl, sheet_name=f"Segments {fy}")
-        grid.to_excel(xl, sheet_name="Divestiture")
+        grid.to_excel(xl, sheet_name="Divestiture (timing)")
+        proceeds_grid.to_excel(xl, sheet_name="Divestiture (price)")
 
     print("Wrote output/reconciliation.md, forecast-briefing.md, divestiture.md, foxf-forecast.xlsx")
     print("\nPhase A reconciliation: see output/reconciliation.md")

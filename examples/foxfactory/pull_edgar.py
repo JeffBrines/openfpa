@@ -149,6 +149,19 @@ def pull_cash_flow() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def pull_quarterly() -> pd.DataFrame:
+    """The two most recent Q1 net-sales prints (Q1 anchors the FY2026 forecast)."""
+    rows = _concept("RevenueFromContractWithCustomerExcludingAssessedTax")
+    q1s = [
+        r for r in rows
+        if r.get("start") and pd.Timestamp(r["start"]).month == 1
+        and 80 <= (pd.Timestamp(r["end"]) - pd.Timestamp(r["start"])).days <= 100
+    ]
+    q1s = sorted({(r["start"], r["end"], r["val"]) for r in q1s}, key=lambda t: t[1])[-2:]
+    out = [{"line": "net_sales", **{f"Q1_FY{pd.Timestamp(e).year}": float(v) for s, e, v in q1s}}]
+    return pd.DataFrame(out)
+
+
 def pull_segments() -> pd.DataFrame:
     """Segment net sales + Adjusted EBITDA from the FY2025 10-K segment footnote.
 
@@ -207,6 +220,9 @@ def write_sources() -> None:
         f"- FY2025 (period end 2026-01-02): accession {TENK[2025]}",
         "- Q1 FY2026 (period end 2026-04-03): latest 10-Q (most recent quarterly value per concept)",
         "",
+        "`quarterly.csv` holds the two most recent Q1 net-sales prints (the FY2026",
+        "forecast anchor), selected as the ~90-day periods starting in early January.",
+        "",
         "## Segment net sales + Adjusted EBITDA",
         "",
         f"FY2025 10-K segment footnote: "
@@ -231,6 +247,7 @@ def main() -> None:
     pull_income_statement().to_csv(DATA / "income_statement.csv", index=False)
     pull_balance_sheet().to_csv(DATA / "balance_sheet.csv", index=False)
     pull_cash_flow().to_csv(DATA / "cash_flow.csv", index=False)
+    pull_quarterly().to_csv(DATA / "quarterly.csv", index=False)
     pull_segments().to_csv(DATA / "segments.csv", index=False)
     write_sources()
     print("Wrote data/*.csv and data/SOURCES.md")
