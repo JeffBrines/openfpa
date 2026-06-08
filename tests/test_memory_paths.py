@@ -25,3 +25,9 @@ def test_bad_path_raises_valueerror():
         _set_by_path({"a": {}}, "a.missing.deep", 1.0)
     with pytest.raises(ValueError):
         _set_by_path({"a": 1}, "a[", 1.0)  # malformed segment
+
+
+def test_index_into_non_list_raises_clear_valueerror():
+    # a scalar can't be indexed with [*]/[n] — error names the offending key + type
+    with pytest.raises(ValueError, match="expects a list"):
+        _set_by_path({"tax_rate": 0.21}, "tax_rate[*]", 0.25)

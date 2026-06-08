@@ -32,6 +32,8 @@ def _set_segments(node, segments, value) -> None:
             node[key] = value
         return
     target = node[key]
+    if not isinstance(target, list):
+        raise ValueError(f"override path expects a list at {key!r}, got {type(target).__name__}")
     items = range(len(target)) if index == "*" else [int(index)]
     for i in items:
         if rest:
