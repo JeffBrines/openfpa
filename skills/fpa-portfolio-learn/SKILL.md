@@ -31,9 +31,10 @@ clients:
 
 1. **Load** the manifest (`pyfpa.load_portfolio`).
 2. For each business-type with at least 3 clients:
-   - **Priors:** `pyfpa.mine_priors(portfolio, type)` finds drivers that cluster tightly.
-     Validate each with `pyfpa.validate_prior(driver, clients_of_type)` (leave-one-out).
-     Surface validated ones first (by cross-client delta), then unvalidated/judgment.
+   - **Priors:** let `type_clients = pyfpa.portfolio.clients_of_type(portfolio, type)`.
+     `pyfpa.mine_priors(portfolio, type)` finds drivers that cluster tightly; validate each
+     with `pyfpa.validate_prior(driver, type_clients)` (leave-one-out). Surface validated
+     ones first (by cross-client delta), then unvalidated/judgment.
    - **Skills:** `pyfpa.find_recurring_skills(portfolio, type)` for recurring generated
      skills. Also weigh recurring **structural corrections** across clients (read each
      `.fpa/corrections/` for `type: structural`) — a human-authored pattern that repeats
