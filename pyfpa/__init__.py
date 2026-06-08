@@ -15,6 +15,11 @@ from pyfpa.cash13.forecast import cash13_forecast
 from pyfpa.cash13.runway import runway_summary
 from pyfpa.io.loaders import load_cash13_config, load_skus
 from pyfpa.analysis.sku import Sku, sku_profitability, pareto_breakpoint
+from pyfpa.analysis.segments import (
+    Segment, segment_pnl, roll_up_segments, segments_to_channels,
+)
+from pyfpa.analysis.divestiture import Carveout, divest, net_debt_to_ebitda
+from pyfpa.analysis.reconcile import reconcile
 from pyfpa.io.pl_csv import read_pl_csv
 from pyfpa.io.reporting import to_briefing_md, forecast_to_excel
 
@@ -26,4 +31,6 @@ __all__ = [
     "Cash13Config", "WeeklyFlow", "expand_flow", "cash13_forecast", "runway_summary",
     "load_cash13_config", "read_pl_csv", "to_briefing_md", "forecast_to_excel",
     "Sku", "sku_profitability", "pareto_breakpoint", "load_skus",
+    "Segment", "segment_pnl", "roll_up_segments", "segments_to_channels",
+    "Carveout", "divest", "net_debt_to_ebitda", "reconcile",
 ]
