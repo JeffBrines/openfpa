@@ -24,6 +24,7 @@ A forecast that's arithmetically correct can still be wrong about reality. This 
 | **D&A is a real expense** | The engine models D&A: `ebitda` is true EBITDA, EBIT = EBITDA − D&A (set `da_monthly`), and D&A is added back in operating cash flow — never let an add-back inflate cash without first expensing it in the P&L. |
 | **Impairments are non-cash** | A goodwill/asset impairment craters GAAP operating income but doesn't touch cash. Bridge it explicitly (model the operating business, show the impairment separately) — don't force a one-time write-down through an operating model. |
 | **Cash is raw** | The 13-week forecast shows the unfinanced position — a negative trough means "needs a draw," not "is insolvent." Say which. |
+| **Known one-offs are flagged** | Read `.fpa/corrections/` for `type: context` notes (e.g. "Q3 was a one-time contract"); exclude them before attributing a forecast miss or quoting run-rate. |
 
 ## How to apply
 

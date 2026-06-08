@@ -35,6 +35,8 @@ Before scaffolding any model, learn the business. This produces two artifacts: a
 
 4. **Generate them** following `superpowers:writing-skills` discipline, into `skills/generated/` (and `agents/generated/`). Each generated skill MUST cite the profile facts that justify it.
 
+5. **Apply existing corrections.** Before forecasting, fold in human corrections: `pyfpa.apply_corrections(cfg, pyfpa.load_corrections('.fpa/corrections'))`. Route any `type: structural` corrections through this skill's skill-generation path as *pre-ratified* proposals (the human already authored them — don't wait for backtest misses).
+
 ## Guardrails (self-extending, NOT self-executing)
 
 - Generated artifacts go in `generated/` namespaces in the **client's own repo** — never the public openfpa template.
