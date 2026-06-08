@@ -67,7 +67,7 @@ def divest(
         capex = row["capex"] - carve_out.capex
         ebitda = gross_profit - opex
         interest = row["interest"] - monthly_interest_saved
-        pretax = ebitda - interest
+        pretax = ebitda - da - interest   # EBIT (= EBITDA - D&A) less interest
         tax = max(0.0, pretax) * tax_rate
         net_income = pretax - tax
         ocf = net_income + da + row["wc_cash_impact"]
