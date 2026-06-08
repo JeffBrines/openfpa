@@ -16,6 +16,14 @@ def test_recover_actuals_inverts_error():
     assert act["ebitda"] == pytest.approx(100.0)
 
 
+def test_recover_actuals_skips_zero_predicted():
+    # predicted 0 with non-zero actual stores error -1.0 → unrecoverable, skip (no crash)
+    snap = _snap("p", 0.5, {"revenue": 0.0, "ebitda": 100.0}, {"revenue": -1.0, "ebitda": 0.0})
+    act = recover_actuals(snap)
+    assert "revenue" not in act
+    assert act["ebitda"] == pytest.approx(100.0)
+
+
 def test_recover_actuals_no_score_is_empty():
     snap = Snapshot(label="p", created="2026-01-01", assumptions={}, predicted={"revenue": 1.0})
     assert recover_actuals(snap) == {}
