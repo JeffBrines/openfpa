@@ -34,6 +34,18 @@ def test_seed_unknown_type_is_noop(tmp_path):
     assert out.working_capital.dio_days == 30.0
 
 
+def test_promote_two_priors_same_type_appends(tmp_path):
+    # a second prior for the same business-type must EXTEND the file, not overwrite
+    lib = tmp_path / "library"
+    val = ValidationResult(mean_delta=0.0, n_folds=3, validated=True)
+    promote_prior(lib, PriorCandidate(business_type="d2c", driver="working_capital.dio_days",
+                                      value=45.0, support=["a", "b", "c"], dispersion=0.02), val)
+    promote_prior(lib, PriorCandidate(business_type="d2c", driver="tax_rate",
+                                      value=0.25, support=["a", "b", "c"], dispersion=0.01), val)
+    drivers = {p["driver"] for p in load_library(lib)["priors"]["d2c"]}
+    assert drivers == {"working_capital.dio_days", "tax_rate"}
+
+
 def test_load_library_round_trip(tmp_path):
     lib = tmp_path / "library"
     cand = PriorCandidate(business_type="d2c", driver="tax_rate", value=0.25,
