@@ -43,8 +43,13 @@ def validate_prior(driver: str, type_clients: list[ClientRef], *, tolerance: flo
         data = copy.deepcopy(snap.assumptions)
         apply_override(data, driver, prior_value)
         forecast = cashflow_from_config(EntityConfig.model_validate(data))
-        predicted = extract_lines(forecast, DEFAULT_SCORE_LINES)
-        new_fitness = score_forecast(predicted, recover_actuals(snap)).fitness
+        # Score over the SAME lines/weights Loop A used for this snapshot, so the new
+        # fitness and snap.score.fitness are apples-to-apples (not assumed defaults).
+        scored_lines = list(snap.score.per_line) or DEFAULT_SCORE_LINES
+        predicted = extract_lines(forecast, scored_lines)
+        new_fitness = score_forecast(
+            predicted, recover_actuals(snap), weights=snap.score.weights or None
+        ).fitness
         deltas.append(new_fitness - snap.score.fitness)
 
     mean_delta = statistics.fmean(deltas)

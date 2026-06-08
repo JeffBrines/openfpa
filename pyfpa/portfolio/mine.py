@@ -62,8 +62,11 @@ def mine_priors(portfolio: Portfolio, business_type: str, *,
         if len(present) < min_support:
             continue
         values = [v for _, v in present]
+        spread = statistics.pstdev(values)
         mean = statistics.fmean(values)
-        cov = (statistics.pstdev(values) / abs(mean)) if mean else float("inf")
+        # Coefficient of variation; a perfectly tight cluster (incl. unanimous zero,
+        # where mean is 0) is the strongest possible signal → dispersion 0.
+        cov = 0.0 if spread == 0 else (spread / abs(mean) if mean else float("inf"))
         if cov <= dispersion_max:
             out.append(PriorCandidate(
                 business_type=business_type, driver=driver,

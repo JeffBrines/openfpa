@@ -58,6 +58,17 @@ def test_mine_priors_below_min_support(tmp_path):
     assert mine_priors(_portfolio(clients), "d2c", min_support=3) == []
 
 
+def test_mine_priors_unanimous_value_is_strongest_cluster(tmp_path):
+    # all three clients run da_monthly=0 — a perfectly tight (unanimous) cluster
+    # should still become a prior, not be dropped by a divide-by-zero mean.
+    clients = [_make_client(tmp_path, n, 45.0) for n in ("a", "b", "c")]
+    cands = mine_priors(_portfolio(clients), "d2c", min_support=3)
+    da = [c for c in cands if c.driver == "da_monthly"]
+    assert len(da) == 1
+    assert da[0].value == 0.0
+    assert da[0].dispersion == 0.0
+
+
 def test_find_recurring_skills(tmp_path):
     clients = [_make_client(tmp_path, n, 45.0, gen_skills=["arr-waterfall"]) for n in ("a", "b", "c")]
     clients.append(_make_client(tmp_path, "d", 45.0, gen_skills=["one-off"]))
