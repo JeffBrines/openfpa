@@ -35,18 +35,19 @@ def cashflow_from_config(cfg: EntityConfig) -> pd.DataFrame:
     wc = working_capital_from_config(cfg, revenue, cogs)
     debt = debt_from_config(cfg)
 
-    gross_profit = revenue["total"] - cogs["total"]
-    ebitda = gross_profit - opex["total"]  # D&A is added back in operating_cash_flow below
-    interest = debt["interest"]
-    pretax = ebitda - interest
-    tax = _tax_series(pretax, cfg.opening_balances.nol, cfg.tax_rate)
-    net_income = pretax - tax
-
     n = len(revenue.index)
     da = pd.Series([cfg.da_monthly] * n, index=revenue.index)
     capex = pd.Series([cfg.capex_monthly] * n, index=revenue.index)
 
-    operating_cash_flow = net_income + da + wc["wc_cash_impact"]
+    gross_profit = revenue["total"] - cogs["total"]
+    ebitda = gross_profit - opex["total"]
+    ebit = ebitda - da                 # D&A is a real (non-cash) expense in the P&L...
+    interest = debt["interest"]
+    pretax = ebit - interest
+    tax = _tax_series(pretax, cfg.opening_balances.nol, cfg.tax_rate)
+    net_income = pretax - tax
+
+    operating_cash_flow = net_income + da + wc["wc_cash_impact"]  # ...and added back here
     free_cash_flow = operating_cash_flow - capex
     change_in_cash = free_cash_flow - debt["principal"]
     ending_cash = change_in_cash.cumsum() + cfg.opening_balances.cash
