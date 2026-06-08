@@ -88,3 +88,13 @@ def test_apply_ignores_open_structural_context():
     ]
     out = apply_corrections(cfg, corrections)
     assert out.working_capital.dio_days == 30.0          # nothing applied
+
+
+def test_apply_bad_path_raises_loudly():
+    # a human-authored correction with a typo'd path must fail loud, not silently no-op
+    cfg = _cfg()
+    bad = Correction(slug="x", type="parametric", target="nonexistent.field",
+                     status="applied", date="2026-06-08",
+                     override=Override(path="nonexistent.field", value=1.0))
+    with pytest.raises(ValueError):
+        apply_corrections(cfg, [bad])
