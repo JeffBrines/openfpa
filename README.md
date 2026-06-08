@@ -99,13 +99,28 @@ It self-extends, too: Fox reports segment **Adjusted EBITDA** (ASU 2023-07), not
 
 ---
 
+## Bring your numbers — any way you have them
+
+openfpa is **not married to a connector.** Everything it ingests normalizes to one shape — `{account: amount}` — so the engine never cares where the numbers came from. And where no built-in path exists, **the AI writes the ingestion**: the Fox example's [`pull_edgar.py`](examples/foxfactory/pull_edgar.py) is exactly that — a SEC-EDGAR adapter the agent built from scratch.
+
+So you connect however your numbers actually live:
+
+- **Public filings** — a 10-K / 10-Q (the Fox Factory example).
+- **Your accounting system, live** — QuickBooks or NetSuite, via their **MCP servers** (the MCP server owns the auth — openfpa never touches your credentials) or their APIs.
+- **D2C ops** — Shopify.
+- **Or just the spreadsheets on your laptop** — P&L, balance sheet, AR/AP aging, inventory. CSV/Excel in, model out. (`read_pl_csv` reads any `Account, Amount` export; richer tables like aged AR or item-level inventory get parsed to what the model needs — DSO, DIO, DPO.)
+
+No data team, no implementation project, no "is my connector supported?" The agent meets your data where it is and builds the bridge. That's the whole point of a substrate an AI extends per-business.
+
+---
+
 ## What it does
 
 ```
 config (YAML)  ─▶  revenue ─▶ cogs ─▶ opex ─▶ working capital ─▶ debt ─▶ cashflow
                                                                             │
-   trial balance / P&L CSV ─▶ (ingestion)                                   ▼
-   NetSuite · QuickBooks · Shopify ─▶ (adapters)              12-month P&L + cash flow
+   spreadsheets (P&L/BS/AR/AP/inventory) ─▶ (ingestion)                     ▼
+   QuickBooks·NetSuite (MCP/API) · 10-K · Shopify ─▶ (adapters)  12-month P&L + cash flow
                                                                             │
    scheduled weekly flows ─▶ 13-week direct-method cash ─▶ runway           ▼
                                                               board-ready briefing (md / xlsx)
@@ -113,8 +128,8 @@ config (YAML)  ─▶  revenue ─▶ cogs ─▶ opex ─▶ working capital �
 
 - **Monthly forecast engine** — config-driven (`EntityConfig`): revenue with seasonality + growth, channel-level COGS, fixed/variable OpEx, AR/AP/inventory working capital, multi-instrument debt, and an indirect-method cash flow with NOL-aware tax.
 - **13-week cash forecast** — schedule-driven direct method (`Cash13Config`): per-week receipts and disbursements, raw cash position (no auto-draws, so the liquidity gap is visible), and a runway summary (`min_cash`, `min_week`, `first_negative_week`).
-- **IO layer** — read a QuickBooks-style P&L CSV, render a markdown CFO briefing, export to Excel.
-- **Data-source adapters** — `from_netsuite` / `from_quickbooks` / `from_shopify` return a normalized `{account: amount}`. Fixture-backed out of the box; each documents its live path (SuiteQL/OAuth, QuickBooks Online, Shopify Admin API). Credentials come from your environment — never committed.
+- **IO layer** — `read_pl_csv` reads any `Account, Amount` statement export (P&L, balance sheet, …) to `{account: amount}`; render a markdown CFO briefing; export to Excel.
+- **Data-source adapters** — `from_netsuite` / `from_quickbooks` / `from_shopify` return a normalized `{account: amount}` (fixture-backed scaffolds; each documents its live path). But the toolkit isn't limited to these — connect QuickBooks/NetSuite **via MCP**, pull a 10-K, or point it at local spreadsheets, and the agent **builds the ingestion for that source** (see [`pull_edgar.py`](examples/foxfactory/pull_edgar.py)). Credentials come from the host/MCP server — never committed.
 
 ## Use it as a library
 
