@@ -138,13 +138,14 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 | Runnable demo (`examples/ridgeline`) | ✅ Built |
 | Real public-company proof (`examples/foxfactory`) | ✅ Built |
 | **Claude skillset** (the hero — see below) | ✅ Built |
+| Self-improving backtest loop (`pyfpa.backtest` + `fpa-backtest-learn`) | ✅ Built |
 
 **The skillset is the point.** The forecast engine is the substrate; the headline feature is a progressive Claude skillset (in [`skills/`](skills/), installable as a Claude plugin) that drives it across the lifecycle:
 
 1. **`fpa-learn-business`** — interview + financials → a durable business profile, and *generate bespoke skills/agents* for that company (the self-extending part).
 2. **`fpa-scaffold-model`** — build a runnable model from a trial balance.
 3. **`fpa-configure-actuals`** — wire real numbers / connect a data source (NetSuite · QuickBooks · Shopify).
-4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing` — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, D&A is a real expense — not a cash-flow freebie, a goodwill impairment is non-cash — bridge it, raw cash ≠ insolvency).
+4. **Operate** — `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing`, and **`fpa-backtest-learn`** — scores past forecasts against your actuals and proposes ratified improvements (the self-improving loop) — guided throughout by **`fpa-cfo-judgment`**, the encoded gotchas a real finance team knows (pre-close margins lie, D&A is a real expense — not a cash-flow freebie, a goodwill impairment is non-cash — bridge it, raw cash ≠ insolvency).
 
 See [`docs/blog/launch.md`](docs/blog/launch.md) for the story — a cold AI agent building a coffee-roaster forecast from a 10-minute intake and writing its own bespoke skill, *and* the same toolkit reconciling Fox Factory's real 10-K to the dollar.
 
