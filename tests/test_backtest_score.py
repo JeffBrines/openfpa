@@ -1,6 +1,7 @@
 import pandas as pd
 import pytest
 from pyfpa.backtest.score import extract_lines, aggregate_periods, DEFAULT_SCORE_LINES
+from pyfpa.backtest.score import ScoreResult, score_forecast, DEFAULT_WEIGHTS
 
 
 def _forecast():
@@ -31,3 +32,22 @@ def test_aggregate_periods_matches_extract():
     assert out["revenue"] == 300.0
     assert out["ending_cash"] == 90.0
     assert out["gross_margin"] == pytest.approx(0.4)
+
+
+def test_score_forecast_weighted_mape():
+    predicted = {"ending_cash": 110.0, "ebitda": 90.0, "revenue": 300.0, "gross_margin": 0.40}
+    actual = {"ending_cash": 100.0, "ebitda": 100.0, "revenue": 300.0, "gross_margin": 0.40}
+    res = score_forecast(predicted, actual)
+    assert res.per_line["ending_cash"] == pytest.approx(0.10)
+    assert res.per_line["ebitda"] == pytest.approx(-0.10)
+    assert res.per_line["revenue"] == pytest.approx(0.0)
+    assert res.fitness == pytest.approx(0.07)
+
+
+def test_score_forecast_skips_absent_and_zero_actual_lines():
+    res = score_forecast(
+        {"ending_cash": 90.0, "ebitda": 30.0},
+        {"ending_cash": 100.0, "ebitda": 0.0},
+    )
+    assert set(res.per_line) == {"ending_cash"}
+    assert res.fitness == pytest.approx(0.10)

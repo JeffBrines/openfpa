@@ -3,6 +3,9 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 
 import pandas as pd
+from pydantic import BaseModel
+
+from pyfpa.analysis.reconcile import reconcile
 
 DEFAULT_SCORE_LINES = ["ending_cash", "ebitda", "revenue", "gross_margin"]
 DEFAULT_WEIGHTS = {"ending_cash": 0.4, "ebitda": 0.3, "revenue": 0.2, "gross_margin": 0.1}
@@ -42,3 +45,30 @@ def aggregate_periods(
         else:
             out[line] = sum(float(d.get(line, 0.0)) for d in period_dicts)
     return out
+
+
+class ScoreResult(BaseModel):
+    fitness: float                       # weighted MAPE across scored lines; lower is better
+    per_line: dict[str, float]           # signed error %, predicted/actual - 1
+    weights: dict[str, float]            # the (renormalized) weights actually used
+
+
+def score_forecast(
+    predicted: Mapping[str, float],
+    actual: Mapping[str, float],
+    *,
+    weights: Mapping[str, float] | None = None,
+) -> ScoreResult:
+    """Weighted MAPE of predicted vs actual over the scored lines present in both
+    (and with non-zero actual). Per-line error reuses `reconcile`'s variance_pct.
+    Weights are renormalized over the lines actually scored."""
+    weights = dict(weights or DEFAULT_WEIGHTS)
+    lines = [l for l in weights if l in predicted and l in actual and actual[l] != 0]
+    if not lines:
+        return ScoreResult(fitness=0.0, per_line={}, weights={})
+    rec = reconcile({l: predicted[l] for l in lines}, {l: actual[l] for l in lines})
+    per_line = {l: float(rec.loc[l, "variance_pct"]) for l in lines}
+    total_w = sum(weights[l] for l in lines)
+    used = {l: weights[l] / total_w for l in lines}
+    fitness = sum(used[l] * abs(per_line[l]) for l in lines)
+    return ScoreResult(fitness=fitness, per_line=per_line, weights=used)
