@@ -4,6 +4,10 @@
 
 **An AI-native FP&A toolkit.** Point an AI coding agent (Claude Code, Claude Cowork, Codex) at your numbers and it builds a working financial model — a 12-month P&L and cash-flow forecast, a 13-week cash runway, and a board-ready briefing.
 
+And it's a model you *work with*, alongside the agent — not a static report it hands back. Ask "what if we delay the hire a quarter," challenge an assumption, point out something that's off, and the agent edits the model, re-runs it, and explains what moved. You're pair-modeling, not waiting on a deliverable.
+
+It also **remembers**. What it learns about your business — your corrections, the assumptions that have held up, what's generalized across your clients — lives as plain files you own, and it draws on that memory to get a little sharper every close. That self-improving loop is borrowed from [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch): AutoResearch tunes a model against validation loss; openfpa tunes against reconciliation error on your own books.
+
 `openfpa` is a deliberately **lean Python forecast engine** plus a **progressive Claude skillset** that encodes the methodology and judgment of a real finance team. The engine is small on purpose: it's the substrate an AI extends per-business, not an off-the-shelf app you configure by hand.
 
 > Built by [Guiderail](https://guiderail.example). Open-source under MIT. The demo runs on synthetic data — no credentials required — and a second worked example validates the engine against a **real public company** (Fox Factory, NASDAQ: FOXF) straight from its SEC filings.
@@ -19,7 +23,7 @@ Those tools hand you connectors and a modeling layer, then leave the thinking to
 Two things underneath, rarely combined:
 
 - **Hundreds of hours of real FP&A engineering** — methodology distilled from production CFO work (a trucking fleet, a bicycle company, and more), not textbook finance.
-- **A self-improving loop, inspired by [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch)** — it scores itself against *your* actuals, aiming to get better over time. AutoResearch optimizes against validation loss; openfpa optimizes against reconciliation error on your own books.
+- **A memory that compounds** — it remembers your business, your corrections, and what's worked across your clients, and tunes itself against your own actuals over time (the [AutoResearch](https://github.com/karpathy/autoresearch)-style loop above). The model isn't reset every session; it accumulates.
 
 Self-hosted, auditable, yours — what it learns lives as plain files in your repo, not someone else's cloud. An open-source experiment from [Guiderail](https://guiderail.example); we'd love your help making it the FP&A tool we all wish existed.
 
@@ -45,7 +49,7 @@ openfpa is designed to get better the more you use it — two loops, both keepin
 - **Per client (Loop A).** Every close, it scores its last forecast against your actuals and proposes tweaks for you to accept or reject. Human corrections feed the same memory: the fixes you catch by eye, captured durably as plain markdown you own.
 - **Across your book (Loop B).** For a fractional CFO with many clients, it looks for patterns that *generalize* — validated by leave-one-out cross-client backtesting (a pattern has to hold up on the clients it wasn't learned from) — and, with your sign-off, saves them to a local library that seeds the next client.
 
-It borrows [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch) idea: a cheap, objective fitness metric — *reconciliation error against your own books* — for the loops to optimize against, at the client level and across your book. Nothing phones home; you ratify every change.
+Both loops optimize against the same cheap, objective fitness metric — *reconciliation error against your own books* (the AutoResearch idea from up top) — one at the client level, one across your book. Nothing phones home; you ratify every change.
 
 ---
 
