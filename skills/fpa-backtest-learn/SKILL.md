@@ -33,6 +33,7 @@ a human accepts. Everything it learns lives as plain files in `.fpa/` the user o
 3. **Attribute** each material per-line miss to a driver (volume / price / cost ratio
    / working-capital timing). **Run the fpa-cfo-judgment one-time-item screen first** —
    never blame the model for a one-off.
+   - **Monitor applied corrections:** if a `type: parametric` correction's target line keeps missing, flag it as possibly stale (`applied → superseded`) for the human — never auto-revert.
 4. **Propose**, tagged by type:
    - **Parametric** (an assumption change): re-score it with `holdout_backtest` on the
      company's history. Surface it **only if it lowers holdout fitness** (not in-sample),
