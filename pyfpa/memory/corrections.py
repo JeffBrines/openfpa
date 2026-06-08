@@ -6,6 +6,9 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel
 
+from pyfpa.config.schemas import EntityConfig
+from pyfpa.memory.paths import _set_by_path
+
 CorrectionType = Literal["parametric", "structural", "context"]
 CorrectionStatus = Literal["open", "applied", "superseded"]
 
@@ -56,3 +59,14 @@ def load_corrections(directory: str | Path) -> list[Correction]:
         frontmatter, body = _split_frontmatter(path.read_text())
         out.append(Correction.model_validate({**frontmatter, "slug": path.stem, "notes": body}))
     return out
+
+
+def apply_corrections(cfg: EntityConfig, corrections: list[Correction]) -> EntityConfig:
+    """Return a NEW config with every `applied` + `parametric` correction's override
+    written in. `open`, `structural`, and `context` corrections are ignored (the
+    latter two are routed by the skill, not applied to the model). Input unmutated."""
+    data = cfg.model_dump()
+    for correction in corrections:
+        if correction.status == "applied" and correction.type == "parametric" and correction.override:
+            _set_by_path(data, correction.override.path, correction.override.value)
+    return EntityConfig.model_validate(data)
