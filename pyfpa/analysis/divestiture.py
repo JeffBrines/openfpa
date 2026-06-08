@@ -28,16 +28,22 @@ def divest(
     annual_rate: float,
     tax_rate: float,
 ) -> pd.DataFrame:
-    """Return a NEW forecast with ``carve_out`` removed from ``sale_month``
-    (1-based) onward and ``proceeds`` used to pay down debt (interest reduced
-    by ``proceeds * annual_rate / 12`` in post-sale months).
+    """Return a NEW forecast with ``carve_out`` divested after ``sale_month``
+    full months, using ``proceeds`` to pay down debt.
+
+    ``sale_month`` is the number of months the unit is **retained** before the
+    sale closes: the unit contributes for forecast months 1..``sale_month`` and
+    is removed from the following month onward (0-based index ``sale_month``).
+    So ``sale_month=6`` means "sold 6 months out" — six months of contribution,
+    then gone. In post-sale months, interest is reduced by
+    ``proceeds * annual_rate / 12`` (debt paid down with the sale proceeds).
 
     The input ``forecast`` is **never mutated** — a deep copy is taken
     immediately and all writes go to that copy.
 
     Assumptions (documented):
     - Working-capital impact of the carve-out is held constant.
-    - One-time proceeds are excluded from FCF.
+    - One-time proceeds are excluded from FCF (FCF is operating only).
     - Opening balances (debt principal) unchanged.
     - ``ending_cash`` is rebuilt from cumulative ``change_in_cash``.
     """
@@ -52,37 +58,31 @@ def divest(
     for i in range(n):
         if i < sale_month:
             continue
+        label = out.index[i]
+        row = out.loc[label]
 
-        revenue = float(out.at[out.index[i], "revenue"]) - carve_out.revenue
-        gross_profit = float(out.at[out.index[i], "gross_profit"]) - carve_out.gross_profit
-        opex = float(out.at[out.index[i], "opex"]) - carve_out.opex
-        da = float(out.at[out.index[i], "da"]) - carve_out.da
-        capex = float(out.at[out.index[i], "capex"]) - carve_out.capex
+        gross_profit = row["gross_profit"] - carve_out.gross_profit
+        opex = row["opex"] - carve_out.opex
+        da = row["da"] - carve_out.da
+        capex = row["capex"] - carve_out.capex
         ebitda = gross_profit - opex
-        interest = float(out.at[out.index[i], "interest"]) - monthly_interest_saved
+        interest = row["interest"] - monthly_interest_saved
         pretax = ebitda - interest
         tax = max(0.0, pretax) * tax_rate
         net_income = pretax - tax
-        wc = float(out.at[out.index[i], "wc_cash_impact"])
-        ocf = net_income + da + wc
+        ocf = net_income + da + row["wc_cash_impact"]
         fcf = ocf - capex
-        principal = float(out.at[out.index[i], "principal"])
-        change_in_cash = fcf - principal
+        change_in_cash = fcf - row["principal"]
 
-        idx_label = out.index[i]
-        out.at[idx_label, "revenue"] = revenue
-        out.at[idx_label, "gross_profit"] = gross_profit
-        out.at[idx_label, "opex"] = opex
-        out.at[idx_label, "da"] = da
-        out.at[idx_label, "ebitda"] = ebitda
-        out.at[idx_label, "interest"] = interest
-        out.at[idx_label, "pretax_income"] = pretax
-        out.at[idx_label, "tax"] = tax
-        out.at[idx_label, "net_income"] = net_income
-        out.at[idx_label, "capex"] = capex
-        out.at[idx_label, "operating_cash_flow"] = ocf
-        out.at[idx_label, "free_cash_flow"] = fcf
-        out.at[idx_label, "change_in_cash"] = change_in_cash
+        updates = {
+            "revenue": row["revenue"] - carve_out.revenue,
+            "gross_profit": gross_profit, "opex": opex, "da": da, "ebitda": ebitda,
+            "interest": interest, "pretax_income": pretax, "tax": tax,
+            "net_income": net_income, "capex": capex, "operating_cash_flow": ocf,
+            "free_cash_flow": fcf, "change_in_cash": change_in_cash,
+        }
+        for col in _CASH_COLUMNS:
+            out.at[label, col] = float(updates[col])
 
     out["ending_cash"] = out["change_in_cash"].cumsum() + opening_cash
     return out
