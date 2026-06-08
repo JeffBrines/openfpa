@@ -10,6 +10,21 @@
 
 ---
 
+## Mission
+
+Bring real FP&A to anyone with a spreadsheet — without the cost or the implementation project of Datarails, Cube, or Vena.
+
+Those tools hand you connectors and a modeling layer, then leave the thinking to you. openfpa flips that: **connect your data — or just point it at your spreadsheets — and let the AI do the thinking.** It asks the questions a good CFO would, builds the model, surfaces what matters, and sharpens itself against your actuals every close.
+
+Two things underneath, rarely combined:
+
+- **Hundreds of hours of real FP&A engineering** — methodology distilled from production CFO work (a trucking fleet, a bicycle company, and more), not textbook finance.
+- **A self-improving loop, inspired by [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch)** — it scores itself against *your* actuals and gets measurably better over time. AutoResearch improves against validation loss; openfpa improves against reconciliation error on your own books.
+
+Self-hosted, auditable, yours — what it learns lives as plain files in your repo, not someone else's cloud. An open-source experiment from [Guiderail](https://guiderail.example); we'd love your help making it the FP&A tool we all wish existed.
+
+---
+
 ## Why not just point Claude at your books?
 
 Fair question — Claude *can* write financial code from scratch. But every run is a one-off: ad-hoc pandas, no shared structure, no test, no audit trail. Correctness by luck-of-the-run. openfpa makes correctness a property of the **system**, not of any single chat:
