@@ -27,6 +27,9 @@ from pyfpa.backtest import (
     save_snapshot, load_snapshot, holdout_backtest,
     magnitude_cap, persistent_miss, render_scorecard,
 )
+from pyfpa.memory import (
+    Override, Correction, load_corrections, save_correction, apply_corrections,
+)
 
 __all__ = [
     "EntityConfig", "Channel", "OpexLine", "DebtInstrument",
@@ -41,4 +44,5 @@ __all__ = [
     "ScoreResult", "score_forecast", "Snapshot", "snapshot_forecast",
     "save_snapshot", "load_snapshot", "holdout_backtest",
     "magnitude_cap", "persistent_miss", "render_scorecard",
+    "Override", "Correction", "load_corrections", "save_correction", "apply_corrections",
 ]
