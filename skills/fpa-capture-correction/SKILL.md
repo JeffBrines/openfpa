@@ -32,10 +32,12 @@ then it persists. Everything is plain markdown the user owns.
 2. **Identify the target** — the driver path (e.g. `channels[*].seasonality[11]`,
    `working_capital.dio_days`), line, or profile area. For parametric, draft the concrete
    `override: {path, value}`.
-3. **Write** the correction file `.fpa/corrections/<date>-<slug>.md`
-   (`pyfpa.save_correction`) with frontmatter (`type`, `target`, `status`, `date`,
-   `override`) and a markdown body (`**Was off:** … **Correction:** … **Why:** [[…]]`).
-   Link the body to the assumption/profile it corrects with `[[wikilinks]]`.
+3. **Write** the correction with `pyfpa.save_correction`. Set `slug` to a
+   `<date>-<short-name>` string (e.g. `2026-06-08-december-seasonality`) — `save_correction`
+   uses the whole slug as the filename (`.fpa/corrections/<slug>.md`), so keep the date in
+   it. Include frontmatter (`type`, `target`, `status`, `date`, `override`) and a markdown
+   body (`**Was off:** … **Correction:** … **Why:** [[…]]`), linking to the assumption/profile
+   it corrects with `[[wikilinks]]`.
 4. **Confirm interpretation.** Echo back the concrete change ("I'll set December
    seasonality to 2.0 on all channels — right?"). Only on confirmation set
    `status: applied`.
