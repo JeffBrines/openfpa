@@ -31,6 +31,10 @@ from pyfpa.memory import (
     Override, Correction, load_corrections, save_correction, apply_corrections,
     apply_override,
 )
+from pyfpa.portfolio import (
+    Portfolio, load_portfolio, mine_priors, find_recurring_skills,
+    validate_prior, promote_prior, promote_skill, seed_from_library,
+)
 
 __all__ = [
     "EntityConfig", "Channel", "OpexLine", "DebtInstrument",
@@ -47,4 +51,6 @@ __all__ = [
     "magnitude_cap", "persistent_miss", "render_scorecard",
     "Override", "Correction", "load_corrections", "save_correction", "apply_corrections",
     "apply_override",
+    "Portfolio", "load_portfolio", "mine_priors", "find_recurring_skills",
+    "validate_prior", "promote_prior", "promote_skill", "seed_from_library",
 ]
