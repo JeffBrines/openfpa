@@ -27,3 +27,26 @@ def test_config_accepts_da_capex():
     cfg = _base_cfg(da_monthly=1000.0, capex_monthly=2000.0)
     assert cfg.da_monthly == 1000.0
     assert cfg.capex_monthly == 2000.0
+
+
+from pyfpa.models.cashflow import cashflow_from_config
+
+
+def test_fcf_columns_and_math():
+    cfg = _base_cfg(da_monthly=1000.0, capex_monthly=2000.0)
+    df = cashflow_from_config(cfg)
+    for col in ("da", "capex", "operating_cash_flow", "free_cash_flow"):
+        assert col in df.columns
+    row = df.iloc[0]
+    assert row["net_income"] == 50_000.0
+    assert row["da"] == 1000.0
+    assert row["capex"] == 2000.0
+    assert row["operating_cash_flow"] == 51_000.0
+    assert row["free_cash_flow"] == 49_000.0
+    assert row["change_in_cash"] == 49_000.0
+
+
+def test_da_capex_default_zero_preserves_change_in_cash():
+    cfg = _base_cfg()
+    df = cashflow_from_config(cfg)
+    assert (df["change_in_cash"] == df["net_income"] + df["wc_cash_impact"] - df["principal"]).all()
