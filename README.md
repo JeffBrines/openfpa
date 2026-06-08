@@ -6,7 +6,7 @@
 
 `openfpa` is a deliberately **lean Python forecast engine** plus a **progressive Claude skillset** that encodes the methodology and judgment of a real finance team. The engine is small on purpose: it's the substrate an AI extends per-business, not an off-the-shelf app you configure by hand.
 
-> Built by [Guiderail](https://guiderail.example). Open-source under MIT. Runs entirely on synthetic demo data — no credentials required.
+> Built by [Guiderail](https://guiderail.example). Open-source under MIT. The demo runs on synthetic data — no credentials required — and a second worked example validates the engine against a **real public company** (Fox Factory, NASDAQ: FOXF) straight from its SEC filings.
 
 ---
 
@@ -38,6 +38,23 @@ That runs the full pipeline on a synthetic premium D2C brand (**Ridgeline Chair 
 The story the model tells: a seasonal inventory business that **goes cash-negative in week 3** as the spring inventory build lands before sell-through collects, troughs at **−$146K**, then recovers — i.e. *"you need a ~$150–200K credit line to bridge the build."* That's the kind of insight this toolkit is built to surface automatically.
 
 The full briefing (with the month-by-month table) is committed at [`docs/demo/briefing.md`](docs/demo/briefing.md).
+
+---
+
+## Proof on a real public company: Fox Factory (FOXF)
+
+Ridgeline is synthetic. To show the engine on *real, messy, audited* numbers, [`examples/foxfactory/`](examples/foxfactory/) runs the whole toolkit against **Fox Factory Holding Corp.**, pulled live from SEC EDGAR (every figure traces to a filing in [`data/SOURCES.md`](examples/foxfactory/data/SOURCES.md)):
+
+```bash
+python examples/foxfactory/pull_edgar.py   # refresh actuals from SEC EDGAR
+python examples/foxfactory/run_foxf.py     # reconcile + forecast + divestiture
+```
+
+- **Phase A — reconciliation.** Driven with Fox's actual segment net sales, COGS, working-capital days, D&A and capex, the engine reproduces reported **revenue, gross profit, Adjusted EBITDA and the working-capital cash mechanic to the dollar** for FY2024 and FY2025. The $557M FY2025 goodwill impairment and discrete tax benefits are shown as an explicit bridge — the lean engine models the operating business, not one-time non-cash charges.
+- **Phase B — forecast.** A segment-level (PVG / AAG / SSG → consolidated) FY2026–FY2027 forecast, anchored to the reported Q1 FY2026 print.
+- **Phase C — capital allocation.** A labeled sensitivity: what selling **Marucci** does to free cash flow and leverage across sale timings and proceeds.
+
+It self-extends, too: Fox reports segment **Adjusted EBITDA** (ASU 2023-07), not segment gross profit, so the `fpa-learn-business` phase generates a bespoke [`segment-rollup`](examples/foxfactory/skills/generated/segment-rollup/SKILL.md) skill to fit — exactly the per-business re-tooling the skillset is built for.
 
 ---
 
@@ -79,7 +96,7 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 - **Lean by intent.** Small, pure `*_from_config` functions; immutable pandas; pydantic-validated config; disk I/O confined to the `io/` layer. The engine is meant to be *read and extended by an AI*, so it stays small and conventional.
 - **Config is the source of truth.** Every number lives in YAML.
 - **Honest cash.** The 13-week forecast shows the raw, unfinanced position — it never hides a shortfall behind an automatic LOC draw.
-- **Synthetic-only in the repo.** Zero real client data. The demo company is fictional; adapters ship with synthetic fixtures.
+- **Zero real *client* data.** The demo company is fictional and adapters ship with synthetic fixtures. The one real-data example (Fox Factory) uses **only public SEC filings**, fetched on demand and fully source-traced.
 
 ## Project status & roadmap
 
@@ -89,6 +106,7 @@ print(to_briefing_md(monthly, title="My Company", runway=runway))
 | 13-week cash engine (`pyfpa.cash13`) | ✅ Built |
 | IO layer + data-source adapters (`pyfpa.io`) | ✅ Built |
 | Runnable demo (`examples/ridgeline`) | ✅ Built |
+| Real public-company proof (`examples/foxfactory`) | ✅ Built |
 | **Claude skillset** (the hero — see below) | ✅ Built |
 
 **The skillset is the point.** The forecast engine is the substrate; the headline feature is a progressive Claude skillset (in [`skills/`](skills/), installable as a Claude plugin) that drives it across the lifecycle:
