@@ -48,13 +48,13 @@ def segment_table() -> pd.DataFrame:
 
 
 def q1_values() -> tuple[float, float]:
-    """(Q1 FY2025, Q1 FY2026) reported net sales — the FY2026 forecast anchor."""
+    """(Q1 FY2025, Q1 FY2026) reported net sales - the FY2026 forecast anchor."""
     q = pd.read_csv(DATA / "quarterly.csv").set_index("line")
     return float(q.loc["net_sales", "Q1_FY2025"]), float(q.loc["net_sales", "Q1_FY2026"])
 
 
 def q1_yoy() -> float:
-    """Reported Q1 FY2026 vs Q1 FY2025 net-sales growth — the FY2026 forecast anchor."""
+    """Reported Q1 FY2026 vs Q1 FY2025 net-sales growth - the FY2026 forecast anchor."""
     prev, curr = q1_values()
     return curr / prev - 1
 
@@ -109,7 +109,7 @@ def reconciliation_config(fy: str, prior_fy: str, *, start_month: str) -> Entity
     """Build an EntityConfig from a fiscal year's ACTUAL drivers, for Phase A.
 
     Models the *normalized* operating company (excludes the goodwill impairment
-    and discrete tax items, which the lean engine does not model — these are
+    and discrete tax items, which the lean engine does not model - these are
     shown as a documented bridge to GAAP net income, not forced through it).
     """
     inc, cf = income_statement(), cash_flow()
@@ -150,7 +150,7 @@ def reconciliation_config(fy: str, prior_fy: str, *, start_month: str) -> Entity
 
 
 # --------------------------------------------------------------------------- #
-# Phase A — actual-driver reproduction
+# Phase A - actual-driver reproduction
 # --------------------------------------------------------------------------- #
 def phase_a_model(fy: str, prior_fy: str) -> dict[str, float]:
     """Run the engine on a year's actual drivers; return the annual model lines
@@ -196,7 +196,7 @@ def phase_a_actual(fy: str, prior_fy: str) -> dict[str, float]:
 
 
 # --------------------------------------------------------------------------- #
-# Phase B — historical holdout research (fit through FY2024, predict FY2025)
+# Phase B - historical holdout research (fit through FY2024, predict FY2025)
 # --------------------------------------------------------------------------- #
 HOLDOUT_OBJECTIVE = ResearchObjective(
     metrics=[
@@ -431,7 +431,7 @@ def historical_holdout_epoch() -> ResearchEpoch:
 
 
 # --------------------------------------------------------------------------- #
-# Phase C — forecast (FY2026 + FY2027), segment-level
+# Phase C - forecast (FY2026 + FY2027), segment-level
 # --------------------------------------------------------------------------- #
 # Assumptions are explicit and defensible. FY2026 net-sales growth is anchored to
 # the reported Q1 FY2026 print (+3.8% YoY vs Q1 FY2025; the segment blend below is
@@ -526,11 +526,11 @@ def build_forecast() -> tuple[pd.DataFrame, dict[str, list[Segment]]]:
 
 
 # --------------------------------------------------------------------------- #
-# Phase D — Marucci divestiture sensitivity
+# Phase D - Marucci divestiture sensitivity
 # --------------------------------------------------------------------------- #
 # Marucci sits inside SSG and is NOT reported standalone, so these are estimates
 # anchored to the acquisition disclosures (paid $567M Nov-2023; $279M intangibles).
-# This is the most assumption-heavy part of the exercise — a labeled sensitivity.
+# This is the most assumption-heavy part of the exercise - a labeled sensitivity.
 MARUCCI = {
     "revenue": 300_000_000.0,       # est. standalone net sales (grew from ~$285M at deal)
     "gross_margin": 0.50,           # branded sports equipment runs richer than Fox blended
@@ -565,7 +565,7 @@ def proceeds_from_multiple(multiple: float) -> float:
 
 
 def _run_rate_leverage(frame: pd.DataFrame, debt_balance: float) -> float:
-    """Net debt / run-rate (final 12 months) EBITDA — annualized, not 2-year."""
+    """Net debt / run-rate (final 12 months) EBITDA - annualized, not 2-year."""
     return net_debt_to_ebitda(frame.iloc[-12:], debt_balance=debt_balance)
 
 
@@ -579,7 +579,7 @@ def divestiture_grid(forecast: pd.DataFrame, debt_balance: float,
     """
     carve = marucci_carveout()
     rows = [{
-        "scenario": "Hold Marucci", "sale_month": "—",
+        "scenario": "Hold Marucci", "sale_month": "-",
         "two_yr_fcf": float(forecast["free_cash_flow"].sum()),
         "net_debt_to_ebitda": _run_rate_leverage(forecast, debt_balance),
     }]

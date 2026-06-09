@@ -1,4 +1,4 @@
-# Phase A — Actual-driver accounting reproduction
+# Phase A - Actual-driver accounting reproduction
 
 The pyfpa engine is driven with Fox Factory's **actual** reported drivers
 (segment net sales, blended COGS%, working-capital days, D&A, capex) and
@@ -30,11 +30,11 @@ validation because the target-year drivers are inputs. Tolerance: 1%.
 
 ## What the engine does not model (documented bridge)
 
-- **FY2025 goodwill impairment of $557.3M** (non-cash) — drove GAAP operating
+- **FY2025 goodwill impairment of $557.3M** (non-cash) - drove GAAP operating
   income to -$522.9M and a -$544.6M net loss even as revenue recovered. The
   lean engine models the operating business; the impairment is a discrete
   non-cash item shown here, not forced through the engine.
-- **Discrete tax items** — Fox booked tax *benefits* in FY2024/FY2025; the
+- **Discrete tax items** - Fox booked tax *benefits* in FY2024/FY2025; the
   engine's tax model only taxes positive income, so net income is bridged
   separately, not reconciled here.
 - This phase therefore validates the **operating arithmetic and the

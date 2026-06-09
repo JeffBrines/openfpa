@@ -3,7 +3,7 @@
 Re-runnable and source-auditable: every figure is fetched from EDGAR's XBRL APIs
 or the rendered 10-K financial-report files, and `data/SOURCES.md` records the
 accession numbers and URLs. SEC requires a descriptive User-Agent with contact
-info — see https://www.sec.gov/os/accessing-edgar-data.
+info - see https://www.sec.gov/os/accessing-edgar-data.
 
 Usage:  python3 examples/foxfactory/pull_edgar.py
 """
@@ -227,7 +227,7 @@ def write_sources() -> None:
         "",
         f"FY2025 10-K segment footnote: "
         f"https://www.sec.gov/Archives/edgar/data/1424929/{TENK[2025]}/{SEG_REPORT}",
-        "(Fox reports segment **Adjusted EBITDA** under ASU 2023-07 — not segment gross",
+        "(Fox reports segment **Adjusted EBITDA** under ASU 2023-07 - not segment gross",
         "profit or operating income. The table carries FY2023-FY2025.)",
         "",
         "## Marucci acquisition anchor (Phase D divestiture)",

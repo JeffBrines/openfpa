@@ -1,13 +1,13 @@
 ---
 name: fpa-learn-business
-description: Use when starting FP&A work for a new company, onboarding a business into openfpa, or asked to "understand my business / set up a model for us" before any forecasting — produces a durable business profile and generates business-specific skills.
+description: Use when starting FP&A work for a new company, onboarding a business into openfpa, or asked to "understand my business / set up a model for us" before any forecasting - produces a durable business profile and generates business-specific skills.
 ---
 
 # Learn the Business (Phase 0)
 
 ## Overview
 
-Before scaffolding any model, learn the business. This produces two artifacts: a **durable business profile** that every other openfpa skill reads first, and — where the standard skills don't fit — **bespoke skills/agents generated for this specific company**. The toolkit re-tools itself per business instead of forcing a generic template.
+Before scaffolding any model, learn the business. This produces two artifacts: a **durable business profile** that every other openfpa skill reads first, and - where the standard skills don't fit - **bespoke skills/agents generated for this specific company**. The toolkit re-tools itself per business instead of forcing a generic template.
 
 **Core principle:** A forecast is only as good as the business understanding behind it. Encode that understanding once, explicitly, so it grounds everything downstream.
 
@@ -70,11 +70,11 @@ completed without understanding the whole company.
    `connectors/generated/`. Each generated artifact MUST cite the profile facts
    that justify it and include a focused test or reconciliation check.
 
-10. **Apply existing corrections.** Before forecasting, fold in human corrections: `pyfpa.apply_corrections(cfg, pyfpa.load_corrections('.fpa/corrections'))`. Route any `type: structural` corrections through this skill's skill-generation path as *pre-ratified* proposals (the human already authored them — don't wait for backtest misses).
+10. **Apply existing corrections.** Before forecasting, fold in human corrections: `pyfpa.apply_corrections(cfg, pyfpa.load_corrections('.fpa/corrections'))`. Route any `type: structural` corrections through this skill's skill-generation path as *pre-ratified* proposals (the human already authored them - don't wait for backtest misses).
 
 ## Guardrails (self-extending, NOT self-executing)
 
-- Generated artifacts go in `generated/` namespaces in the **client's own repo** — never the public openfpa template.
+- Generated artifacts go in `generated/` namespaces in the **client's own repo** - never the public openfpa template.
 - **Human review gate:** propose each new skill/agent with its rationale and WAIT for approval before writing it.
 - No profile fact → no generated skill. Speculation is not a justification.
 - Record material generated changes as `pyfpa.Experiment` files in

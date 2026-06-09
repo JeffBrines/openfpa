@@ -7,7 +7,7 @@ description: Use when running a month-end close, refreshing a forecast with the 
 
 ## Overview
 
-Fold the latest actuals into the model, refresh the forward forecast from the last closed position, and explain the variance. The output is a *narrative*, not just a variance table — what changed, why, and what it means forward.
+Fold the latest actuals into the model, refresh the forward forecast from the last closed position, and explain the variance. The output is a *narrative*, not just a variance table - what changed, why, and what it means forward.
 
 **Core principle:** A close that only reports numbers isn't done. The value is the explanation.
 
@@ -27,9 +27,9 @@ Fold the latest actuals into the model, refresh the forward forecast from the la
 4. **Recompute the forecast**: `pyfpa.cashflow_from_config(cfg)` after updating config with the new closed position.
 5. **Variance**: compare actual vs plan for revenue, gross margin, EBITDA, and ending cash. For each material variance, state the *driver* (volume, price, cost ratio, timing).
 6. **Pick a reforecast posture** and say which you used:
-   - **Plan** — frozen forecast unchanged
-   - **Latest estimate** — actuals for closed months, plan forward from the last closed balance
-   - **Run-rate** — project the YTD actual pace forward
+   - **Plan** - frozen forecast unchanged
+   - **Latest estimate** - actuals for closed months, plan forward from the last closed balance
+   - **Run-rate** - project the YTD actual pace forward
 7. **Write the narrative**: the 3 things that moved, the 3 risks forward.
 
 ## Judgment checks (always)

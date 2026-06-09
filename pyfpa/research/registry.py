@@ -98,7 +98,17 @@ def promote_challenger(
             epoch.evaluation.challenger_metrics,
             epoch.checks,
         )
-        if not recomputed.promotion_eligible:
+        # Complexity inputs are not stored on the epoch, so reapply the STORED
+        # complexity cost to the recomputed weighted improvement. Everything
+        # derivable from metrics (weights, clamp, regression guard, hard checks)
+        # is re-derived; only the complexity term is trusted from the record.
+        faithful_gain = recomputed.weighted_improvement - epoch.evaluation.complexity_cost
+        reproduces = (
+            recomputed.hard_checks_passed
+            and recomputed.regression_guard_passed
+            and faithful_gain >= objective.min_improvement
+        )
+        if not reproduces:
             raise ValueError(
                 "stored evaluation does not reproduce: recomputed evaluation is not "
                 "promotion_eligible -- the stored YAML may have been hand-edited"

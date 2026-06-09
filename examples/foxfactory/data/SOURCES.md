@@ -20,7 +20,7 @@ forecast anchor), selected as the ~90-day periods starting in early January.
 ## Segment net sales + Adjusted EBITDA
 
 FY2025 10-K segment footnote: https://www.sec.gov/Archives/edgar/data/1424929/000142492926000012/R106.htm
-(Fox reports segment **Adjusted EBITDA** under ASU 2023-07 — not segment gross
+(Fox reports segment **Adjusted EBITDA** under ASU 2023-07 - not segment gross
 profit or operating income. The table carries FY2023-FY2025.)
 
 ## Marucci acquisition anchor (Phase D divestiture)

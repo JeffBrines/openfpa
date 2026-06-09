@@ -1,6 +1,6 @@
 ---
 name: fpa-backtest-learn
-description: Use when you want the model to learn from how its past forecasts actually turned out — scoring forecasts against the company's real actuals, backtesting assumptions on history, and proposing ratified improvements. Runs at/after monthly close.
+description: Use when you want the model to learn from how its past forecasts actually turned out - scoring forecasts against the company's real actuals, backtesting assumptions on history, and proposing ratified improvements. Runs at/after monthly close.
 ---
 
 # Backtest & Learn (Operate)
@@ -10,7 +10,7 @@ description: Use when you want the model to learn from how its past forecasts ac
 The model should get measurably better at this business over time. This skill
 scores past forecasts against the company's actuals, surfaces what keeps missing,
 and proposes improvements a human ratifies. The objective metric is reconciliation
-error against the user's own books (`pyfpa.score_forecast`) — the FP&A analog of a
+error against the user's own books (`pyfpa.score_forecast`) - the FP&A analog of a
 validation loss.
 
 **Core principle:** self-experimenting, but never self-promoting. The AI may run
@@ -19,11 +19,11 @@ the champion. Everything learned lives as plain files in `.fpa/`.
 
 ## Memory (`.fpa/`)
 
-- `forecasts/<period>.snapshot.yaml` — each forecast's assumptions + predictions, and (after close) its score.
-- `scorecard.md` — the running track record (rendered, never hand-edited).
-- `experiments/<slug>.experiment.yaml` — each tested model change, its evidence,
+- `forecasts/<period>.snapshot.yaml` - each forecast's assumptions + predictions, and (after close) its score.
+- `scorecard.md` - the running track record (rendered, never hand-edited).
+- `experiments/<slug>.experiment.yaml` - each tested model change, its evidence,
   changed files, checks, before/after metrics, and decision.
-- `learnings.md` — every accepted change: what, the evidence, the backtest delta, the date.
+- `learnings.md` - every accepted change: what, the evidence, the backtest delta, the date.
 
 ## Workflow
 
@@ -34,9 +34,9 @@ the champion. Everything learned lives as plain files in `.fpa/`.
    load that period's snapshot, `score_forecast(snap.predicted, actuals)`, write the
    score back into the snapshot, and re-render `scorecard.md` with `render_scorecard`.
 3. **Attribute** each material per-line miss to a driver (volume / price / cost ratio
-   / working-capital timing). **Run the fpa-cfo-judgment one-time-item screen first** —
+   / working-capital timing). **Run the fpa-cfo-judgment one-time-item screen first** -
    never blame the model for a one-off.
-   - **Monitor applied corrections:** if a `type: parametric` correction's target line keeps missing, flag it as possibly stale (`applied → superseded`) for the human — never auto-revert.
+   - **Monitor applied corrections:** if a `type: parametric` correction's target line keeps missing, flag it as possibly stale (`applied → superseded`) for the human - never auto-revert.
 4. **Create an experiment** before changing the model. State the financial
    hypothesis, CFO question, evidence, fit periods, holdout periods, and files
    expected to change. Save it with `pyfpa.save_experiment`.
@@ -47,7 +47,7 @@ the champion. Everything learned lives as plain files in `.fpa/`.
    - **Structural** (a methodology/skill change, e.g. a revenue-recognition lag): surface
      **only** when `persistent_miss` is true for the line (same-signed across K≥2 closes)
      and it survived the one-time screen. Hand it to **fpa-learn-business** to generate the
-     skill *on approval* — propose, don't auto-write.
+     skill *on approval* - propose, don't auto-write.
 6. **Evaluate.** Record before/after metrics and explicit checks in the experiment.
    A model change that breaks reconciliation or another accounting invariant is
    failed even if one headline metric improves.
@@ -67,7 +67,7 @@ to report current accuracy and the first round of parametric proposals.
 ## Guardrails (always)
 
 - Never score on data the model was fit on (`holdout_backtest` enforces this).
-- No proposal off a single period — require a persistent, same-signed miss.
+- No proposal off a single period - require a persistent, same-signed miss.
 - A parametric change must improve **holdout** fitness, not in-sample fit.
 - Cap how far any assumption moves per cycle (`magnitude_cap`).
 - Human ratifies champion promotion; autonomous failed epochs are logged and reversible.

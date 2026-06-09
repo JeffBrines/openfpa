@@ -25,7 +25,7 @@ def validate_prior(driver: str, type_clients: list[ClientRef], *, tolerance: flo
     value as the median across the OTHER clients, apply it to the held-out client's
     best-snapshot config, re-forecast, and score against that client's recovered
     actuals. A prior is `validated` if the mean fitness delta (new - original) is
-    <= tolerance with >= 2 folds — a peer-derived value does not degrade held-out fit."""
+    <= tolerance with >= 2 folds - a peer-derived value does not degrade held-out fit."""
     usable = []
     for c in type_clients:
         snap = best_snapshot(c.path)

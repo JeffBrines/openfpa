@@ -1,4 +1,4 @@
-# Phase B — FY2025 historical holdout research
+# Phase B - FY2025 historical holdout research
 
 The research loop fits only on FY2023-FY2024 and holds FY2025 out.
 The champion is a flat FY2024 run rate. Each challenger is scored on

@@ -20,7 +20,7 @@ def recover_actuals(snapshot: Snapshot) -> dict[str, float]:
 
 
 def best_snapshot(client_path: str | Path) -> Snapshot | None:
-    """The lowest-fitness scored snapshot in <client>/.fpa/forecasts/ — the
+    """The lowest-fitness scored snapshot in <client>/.fpa/forecasts/ - the
     assumptions that worked best for that client. None if no scored snapshot."""
     forecasts = Path(client_path) / ".fpa" / "forecasts"
     if not forecasts.exists():

@@ -7,9 +7,9 @@ description: Use when answering "when do we run out of cash", building a 13-week
 
 ## Overview
 
-Build the 13-week direct-method cash forecast — the operator's near-term liquidity view. Schedule the known weekly receipts and disbursements, show the **raw** cash position (no automatic LOC draws), and report the trough and first negative week.
+Build the 13-week direct-method cash forecast - the operator's near-term liquidity view. Schedule the known weekly receipts and disbursements, show the **raw** cash position (no automatic LOC draws), and report the trough and first negative week.
 
-**Core principle:** Show the unfinanced position. A visible shortfall is the whole point — it sizes the credit line.
+**Core principle:** Show the unfinanced position. A visible shortfall is the whole point - it sizes the credit line.
 
 ## When to use
 
@@ -36,7 +36,7 @@ Build the 13-week direct-method cash forecast — the operator's near-term liqui
 
 ## Common mistakes
 
-- Smoothing monthly numbers into weeks instead of scheduling the real lumpy items — the lumps are the signal.
+- Smoothing monthly numbers into weeks instead of scheduling the real lumpy items - the lumps are the signal.
 - Auto-covering the shortfall with a draw and hiding the gap. Don't; show it.
 
 ## Next
