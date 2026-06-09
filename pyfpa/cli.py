@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
-import re
 import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
+from pyfpa.memory.diagnostics import WorkspaceReport, validate_workspace
 from pyfpa.memory.entrypoints import (
     CompanyEntrypoint,
     load_entrypoint_registry,
@@ -21,6 +20,7 @@ from pyfpa.memory.connectors import (
     scaffold_connector_bundle,
     validate_connector_bundle,
 )
+from pyfpa.memory.inspection import InspectionResult, inspect_data_files
 from pyfpa.memory.intake import (
     intake_ready,
     load_intake,
@@ -40,7 +40,7 @@ from pyfpa.memory.lineage import (
     save_mapping_registry,
     save_source_registry,
 )
-from pyfpa.memory.workspace import initialize_workspace, workspace_path
+from pyfpa.memory.workspace import WORKSPACE_DIRS, initialize_workspace, workspace_path
 from pyfpa.research.objective import load_research_objective
 from pyfpa.research.registry import load_model_registry
 
@@ -49,68 +49,6 @@ SCHEMA_VERSION = 1
 EXIT_OK = 0
 EXIT_FAILED = 1
 EXIT_USAGE = 2
-
-_IGNORED_DIRECTORIES = {
-    ".fpa",
-    ".git",
-    ".hg",
-    ".mypy_cache",
-    ".pytest_cache",
-    ".ruff_cache",
-    ".tox",
-    ".venv",
-    "__pycache__",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
-}
-_DATA_EXTENSIONS = {
-    ".csv",
-    ".json",
-    ".parquet",
-    ".pdf",
-    ".tsv",
-    ".xls",
-    ".xlsm",
-    ".xlsx",
-    ".xml",
-    ".yaml",
-    ".yml",
-}
-_CONTEXT_EXTENSIONS = {".md", ".txt"}
-_CLASSIFIERS = (
-    ("profit_and_loss", ("pnl", "p l", "profit loss", "income statement")),
-    ("balance_sheet", ("balance sheet", "balance_sheet", "trial balance", "trial_balance")),
-    ("ar_aging", ("ar aging", "ar_aging", "accounts receivable", "receivable aging")),
-    ("ap_aging", ("ap aging", "ap_aging", "accounts payable", "payable aging")),
-    ("inventory", ("inventory", "stock on hand", "stock_on_hand", "sku", "item detail")),
-    ("cash_and_bank", ("cash", "bank", "treasury")),
-    ("payroll_and_headcount", ("payroll", "headcount", "wages", "compensation")),
-    ("sales_and_revenue", ("sales", "revenue", "bookings", "orders", "crm")),
-    ("budget_and_forecast", ("budget", "forecast", "plan", "scenario")),
-    ("operations", ("operations", "operational", "production", "utilization", "fleet")),
-)
-_CONTEXT_SIGNALS = (
-    "business",
-    "board",
-    "covenant",
-    "finance",
-    "model",
-    "planning",
-    "pricing",
-    "strategy",
-)
-_REQUIRED_WORKSPACE_DIRS = (
-    "sources",
-    "mappings",
-    "corrections",
-    "forecasts",
-    "experiments",
-    "decisions",
-    "models",
-    "research",
-)
 
 
 class JsonArgumentParser(argparse.ArgumentParser):
@@ -169,62 +107,10 @@ def _root(path: str) -> Path:
     return Path(path).expanduser().resolve()
 
 
-def _normalized_name(path: Path) -> str:
-    return re.sub(r"[^a-z0-9]+", " ", path.stem.casefold()).strip()
-
-
-def _classify_file(path: Path) -> tuple[str, list[str]]:
-    name = _normalized_name(path)
-    for category, signals in _CLASSIFIERS:
-        matched = [signal for signal in signals if signal.replace("_", " ") in name]
-        if matched:
-            return category, matched
-    return "unclassified", []
-
-
-def _is_candidate_file(path: Path) -> bool:
-    suffix = path.suffix.casefold()
-    if suffix in _DATA_EXTENSIONS:
-        return True
-    if suffix not in _CONTEXT_EXTENSIONS:
-        return False
-    name = _normalized_name(path)
-    return any(signal in name for signal in _CONTEXT_SIGNALS)
-
-
-def _inventory_files(root: Path, *, max_files: int) -> tuple[list[dict[str, Any]], bool]:
-    files: list[dict[str, Any]] = []
-    for current, directories, filenames in os.walk(root):
-        directories[:] = sorted(
-            directory
-            for directory in directories
-            if directory not in _IGNORED_DIRECTORIES and not directory.startswith(".")
-        )
-        for filename in sorted(filenames):
-            if filename.startswith("."):
-                continue
-            path = Path(current) / filename
-            if not _is_candidate_file(path):
-                continue
-            category, signals = _classify_file(path)
-            files.append(
-                {
-                    "path": path.relative_to(root).as_posix(),
-                    "extension": path.suffix.casefold(),
-                    "bytes": path.stat().st_size,
-                    "category": category,
-                    "signals": signals,
-                }
-            )
-            if len(files) > max_files:
-                return files[:max_files], True
-    return files, False
-
-
 def _workspace_counts(workspace: Path) -> dict[str, int]:
     return {
         directory: sum(1 for path in (workspace / directory).glob("*") if path.is_file())
-        for directory in _REQUIRED_WORKSPACE_DIRS
+        for directory in WORKSPACE_DIRS
         if (workspace / directory).is_dir()
     }
 
@@ -242,7 +128,7 @@ def command_init(args: argparse.Namespace) -> int:
             "workspace": str(workspace),
             "created": not existed,
             "business_name": load_intake(workspace / "intake.md").business_name,
-            "next_command": f"openfpa inspect-data {json.dumps(str(root))}",
+            "next_command": f"python3 -m pyfpa.cli inspect-data {json.dumps(str(root))}",
         },
     )
 
@@ -251,29 +137,17 @@ def command_inspect_data(args: argparse.Namespace) -> int:
     root = _root(args.path)
     if not root.is_dir():
         return _failure("inspect-data", root, "path_not_found", "inspection path is not a directory")
-    files, truncated = _inventory_files(root, max_files=args.max_files)
-    category_counts: dict[str, int] = {}
-    for item in files:
-        category = item["category"]
-        category_counts[category] = category_counts.get(category, 0) + 1
-    priority_categories = {
-        "profit_and_loss",
-        "balance_sheet",
-        "ar_aging",
-        "ap_aging",
-        "inventory",
-    }
-    found_categories = set(category_counts)
+    result = inspect_data_files(root, max_files=args.max_files)
     return _success(
         "inspect-data",
         root,
         {
-            "files": files,
-            "file_count": len(files),
-            "category_counts": category_counts,
-            "missing_priority_categories": sorted(priority_categories - found_categories),
-            "truncated": truncated,
-            "max_files": args.max_files,
+            "files": result.files,
+            "file_count": result.file_count,
+            "category_counts": result.category_counts,
+            "missing_priority_categories": result.missing_priority_categories,
+            "truncated": result.truncated,
+            "max_files": result.max_files,
             "writes_performed": False,
         },
     )
@@ -289,7 +163,7 @@ def command_status(args: argparse.Namespace) -> int:
             {
                 "initialized": False,
                 "workspace": str(workspace),
-                "next_command": f"openfpa init {json.dumps(str(root))}",
+                "next_command": f"python3 -m pyfpa.cli init {json.dumps(str(root))}",
             },
         )
     try:
@@ -767,7 +641,7 @@ def command_connector_scaffold(args: argparse.Namespace) -> int:
             "bundle_path": str(connector_bundle_path(root, manifest.name)),
             "fixture_reconciliation": reconciliation,
             "next_command": (
-                f"openfpa connector-validate {json.dumps(str(root))} "
+                f"python3 -m pyfpa.cli connector-validate {json.dumps(str(root))} "
                 f"--name {manifest.name}"
             ),
         },
@@ -841,145 +715,259 @@ def command_connector_validate(args: argparse.Namespace) -> int:
     return _success("connector-validate", root, result)
 
 
-def _check(
-    checks: list[dict[str, str]],
-    *,
-    name: str,
-    result: str,
-    details: str,
-) -> None:
-    checks.append({"name": name, "result": result, "details": details})
-
-
 def command_doctor(args: argparse.Namespace) -> int:
     root = _root(args.path)
-    workspace = workspace_path(root)
-    checks: list[dict[str, str]] = []
-    if not workspace.is_dir():
-        _check(
-            checks,
-            name="workspace",
-            result="error",
-            details=f"missing workspace: {workspace}",
-        )
-    else:
-        _check(checks, name="workspace", result="pass", details=str(workspace))
-        for directory in _REQUIRED_WORKSPACE_DIRS:
-            path = workspace / directory
-            _check(
-                checks,
-                name=f"directory:{directory}",
-                result="pass" if path.is_dir() else "error",
-                details=str(path),
-            )
-        try:
-            intake = load_intake(workspace / "intake.md")
-            _check(
-                checks,
-                name="intake",
-                result="pass",
-                details=(
-                    f"{len(intake.facts)} facts; "
-                    f"ready={str(intake_ready(intake)).lower()}"
-                ),
-            )
-        except Exception as exc:
-            _check(checks, name="intake", result="error", details=str(exc))
-        try:
-            objective = load_research_objective(workspace / "research" / "objective.yaml")
-            _check(
-                checks,
-                name="research_objective",
-                result="pass",
-                details=f"{len(objective.metrics)} metrics; {len(objective.hard_checks)} hard checks",
-            )
-        except Exception as exc:
-            _check(checks, name="research_objective", result="error", details=str(exc))
-        try:
-            registry = load_model_registry(workspace / "models" / "registry.yaml")
-            _check(
-                checks,
-                name="model_registry",
-                result="pass",
-                details=(
-                    f"champion={registry.champion.model_id if registry.champion else 'none'}; "
-                    f"challengers={len(registry.challengers)}"
-                ),
-            )
-        except Exception as exc:
-            _check(checks, name="model_registry", result="error", details=str(exc))
-        try:
-            entrypoint_path = workspace / "models" / "entrypoints.yaml"
-            if not entrypoint_path.exists():
-                raise FileNotFoundError(f"entrypoint registry not found: {entrypoint_path}")
-            entrypoints = load_entrypoint_registry(entrypoint_path)
-            _check(
-                checks,
-                name="entrypoint_registry",
-                result="pass",
-                details=f"{len(entrypoints.entrypoints)} registered entrypoints",
-            )
-        except Exception as exc:
-            _check(checks, name="entrypoint_registry", result="error", details=str(exc))
-        try:
-            source_path = workspace / "sources" / "registry.yaml"
-            if not source_path.exists():
-                raise FileNotFoundError(f"source registry not found: {source_path}")
-            sources = load_source_registry(source_path)
-            _check(
-                checks,
-                name="source_registry",
-                result="pass",
-                details=f"{len(sources.sources)} registered sources",
-            )
-        except Exception as exc:
-            _check(checks, name="source_registry", result="error", details=str(exc))
-        try:
-            mapping_path = workspace / "mappings" / "registry.yaml"
-            if not mapping_path.exists():
-                raise FileNotFoundError(f"mapping registry not found: {mapping_path}")
-            mappings = load_mapping_registry(mapping_path)
-            _check(
-                checks,
-                name="mapping_registry",
-                result="pass",
-                details=f"{len(mappings.mappings)} registered mappings",
-            )
-        except Exception as exc:
-            _check(checks, name="mapping_registry", result="error", details=str(exc))
-        try:
-            connectors = load_connector_manifests(root)
-            _check(
-                checks,
-                name="generated_connector_contracts",
-                result="pass",
-                details=f"{len(connectors)} generated connector manifests",
-            )
-        except Exception as exc:
-            _check(
-                checks,
-                name="generated_connector_contracts",
-                result="error",
-                details=str(exc),
-            )
-
-    errors = [check for check in checks if check["result"] == "error"]
-    warnings = [check for check in checks if check["result"] == "warning"]
+    report = validate_workspace(root)
     payload = {
-        "healthy": not errors,
-        "checks": checks,
-        "error_count": len(errors),
-        "warning_count": len(warnings),
+        "healthy": report.healthy,
+        "checks": report.checks,
+        "error_count": report.error_count,
+        "warning_count": report.warning_count,
     }
-    if errors:
+    if not report.healthy:
         return _failure(
             "doctor",
             root,
             "diagnostic_failure",
-            f"{len(errors)} diagnostic check(s) failed",
+            f"{report.error_count} diagnostic check(s) failed",
             data=payload,
         )
     return _success("doctor", root, payload)
+
+
+def command_correction_record(args: argparse.Namespace) -> int:
+    from pyfpa.memory.corrections import Correction, Override, save_correction
+
+    root = _root(args.path)
+    workspace = workspace_path(root)
+    if not workspace.is_dir():
+        return _failure(
+            "correction-record",
+            root,
+            "workspace_not_initialized",
+            "initialize the company workspace before recording corrections",
+        )
+    try:
+        override = None
+        if args.override_path is not None:
+            override = Override(path=args.override_path, value=args.override_value)
+        correction = Correction(
+            slug=args.slug,
+            type=args.type,
+            target=args.target,
+            status=args.status,
+            date=args.date,
+            override=override,
+            notes=args.notes or "",
+        )
+        save_correction(correction, workspace / "corrections")
+    except Exception as exc:
+        return _failure("correction-record", root, "invalid_correction", str(exc))
+    return _success(
+        "correction-record",
+        root,
+        {
+            "slug": correction.slug,
+            "type": correction.type,
+            "target": correction.target,
+            "status": correction.status,
+            "date": correction.date,
+            "override": correction.override.model_dump() if correction.override else None,
+            "corrections_dir": str(workspace / "corrections"),
+        },
+    )
+
+
+def command_correction_list(args: argparse.Namespace) -> int:
+    from pyfpa.memory.corrections import load_corrections
+
+    root = _root(args.path)
+    workspace = workspace_path(root)
+    if not workspace.is_dir():
+        return _failure(
+            "correction-list",
+            root,
+            "workspace_not_initialized",
+            "initialize the company workspace before listing corrections",
+        )
+    try:
+        corrections = load_corrections(workspace / "corrections")
+    except Exception as exc:
+        return _failure("correction-list", root, "invalid_correction", str(exc))
+    filtered = [
+        c for c in corrections
+        if args.status is None or c.status == args.status
+    ]
+    return _success(
+        "correction-list",
+        root,
+        {
+            "corrections": [
+                {"slug": c.slug, "type": c.type, "target": c.target, "status": c.status}
+                for c in filtered
+            ],
+            "correction_count": len(filtered),
+            "writes_performed": False,
+        },
+    )
+
+
+def command_scorecard_render(args: argparse.Namespace) -> int:
+    from pyfpa.backtest.learn import render_scorecard
+    from pyfpa.backtest.snapshot import load_snapshot
+
+    root = _root(args.path)
+    workspace = workspace_path(root)
+    if not workspace.is_dir():
+        return _failure(
+            "scorecard-render",
+            root,
+            "workspace_not_initialized",
+            "initialize the company workspace before rendering scorecard",
+        )
+    forecasts_dir = workspace / "forecasts"
+    snapshots = []
+    parse_errors = []
+    if forecasts_dir.is_dir():
+        for snap_path in sorted(forecasts_dir.glob("*.yaml")):
+            try:
+                snapshots.append(load_snapshot(snap_path))
+            except Exception as exc:
+                parse_errors.append(f"{snap_path.name}: {exc}")
+    if parse_errors:
+        return _failure(
+            "scorecard-render",
+            root,
+            "invalid_snapshot",
+            "; ".join(parse_errors),
+        )
+    scored = [s for s in snapshots if s.score is not None]
+    unscored = [s for s in snapshots if s.score is None]
+    scorecard_path = workspace / "scorecard.md"
+    try:
+        scorecard_path.write_text(render_scorecard(snapshots))
+    except Exception as exc:
+        return _failure("scorecard-render", root, "render_failed", str(exc))
+    return _success(
+        "scorecard-render",
+        root,
+        {
+            "scorecard_path": str(scorecard_path),
+            "snapshot_count": len(snapshots),
+            "scored_count": len(scored),
+            "unscored_count": len(unscored),
+        },
+    )
+
+
+def command_experiment_list(args: argparse.Namespace) -> int:
+    from pyfpa.memory.experiments import load_experiments
+
+    root = _root(args.path)
+    workspace = workspace_path(root)
+    if not workspace.is_dir():
+        return _failure(
+            "experiment-list",
+            root,
+            "workspace_not_initialized",
+            "initialize the company workspace before listing experiments",
+        )
+    try:
+        experiments = load_experiments(workspace / "experiments")
+    except Exception as exc:
+        return _failure("experiment-list", root, "invalid_experiment", str(exc))
+    filtered = [
+        e for e in experiments
+        if args.status is None or e.status == args.status
+    ]
+    return _success(
+        "experiment-list",
+        root,
+        {
+            "experiments": [
+                {
+                    "slug": e.slug,
+                    "status": e.status,
+                    "hypothesis": e.hypothesis,
+                    "snapshot": e.snapshot,
+                    "created": e.created,
+                }
+                for e in filtered
+            ],
+            "experiment_count": len(filtered),
+            "writes_performed": False,
+        },
+    )
+
+
+def command_context_pack(args: argparse.Namespace) -> int:
+    from pyfpa.memory.retrieval import build_context_pack, build_memory_index, search_memory
+
+    root = _root(args.path)
+    workspace = workspace_path(root)
+    if not workspace.is_dir():
+        return _failure(
+            "context-pack",
+            root,
+            "workspace_not_initialized",
+            "initialize the company workspace before building a context pack",
+        )
+    try:
+        index = build_memory_index(workspace)
+        pack = build_context_pack(
+            index,
+            args.task,
+            categories=args.category or None,
+            limit=args.limit,
+        )
+        hits = search_memory(index, args.task, categories=args.category or None, limit=args.limit)
+    except Exception as exc:
+        return _failure("context-pack", root, "context_pack_failed", str(exc))
+    return _success(
+        "context-pack",
+        root,
+        {
+            "pack": pack,
+            "hit_count": len(hits),
+            "entry_count": len(index.entries),
+            "writes_performed": False,
+        },
+    )
+
+
+def command_onboarding_render(args: argparse.Namespace) -> int:
+    from pyfpa.memory.onboarding import ArchitectureProposal, write_onboarding_outputs
+
+    root = _root(args.path)
+    workspace = workspace_path(root)
+    if not workspace.is_dir():
+        return _failure(
+            "onboarding-render",
+            root,
+            "workspace_not_initialized",
+            "initialize the company workspace before rendering onboarding outputs",
+        )
+    try:
+        intake = load_intake(workspace / "intake.md")
+        proposal = ArchitectureProposal(
+            summary=args.proposal_summary,
+            connectors=args.connector or [],
+            model_components=args.model_component or [],
+            generated_skills=args.generated_skill or [],
+            risks=args.risk or [],
+            validation_checks=args.validation_check or [],
+        )
+        profile_path, proposal_path = write_onboarding_outputs(intake, workspace, proposal)
+    except Exception as exc:
+        return _failure("onboarding-render", root, "onboarding_render_failed", str(exc))
+    return _success(
+        "onboarding-render",
+        root,
+        {
+            "profile_path": str(profile_path),
+            "proposal_path": str(proposal_path),
+        },
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1195,6 +1183,77 @@ def build_parser() -> argparse.ArgumentParser:
     doctor_parser = subparsers.add_parser("doctor", help="Validate workspace contracts")
     doctor_parser.add_argument("path", nargs="?", default=".")
     doctor_parser.set_defaults(handler=command_doctor)
+
+    correction_record_parser = subparsers.add_parser(
+        "correction-record",
+        help="Record one typed human correction into .fpa/corrections/",
+    )
+    correction_record_parser.add_argument("path", nargs="?", default=".")
+    correction_record_parser.add_argument("--slug", required=True)
+    correction_record_parser.add_argument(
+        "--type", required=True, choices=("parametric", "structural", "context")
+    )
+    correction_record_parser.add_argument("--target", required=True)
+    correction_record_parser.add_argument(
+        "--status", choices=("open", "applied", "superseded"), default="open"
+    )
+    correction_record_parser.add_argument("--date", required=True)
+    correction_record_parser.add_argument("--notes", default="")
+    correction_record_parser.add_argument("--override-path")
+    correction_record_parser.add_argument("--override-value", type=float)
+    correction_record_parser.set_defaults(handler=command_correction_record)
+
+    correction_list_parser = subparsers.add_parser(
+        "correction-list",
+        help="List recorded corrections",
+    )
+    correction_list_parser.add_argument("path", nargs="?", default=".")
+    correction_list_parser.add_argument(
+        "--status", choices=("open", "applied", "superseded")
+    )
+    correction_list_parser.set_defaults(handler=command_correction_list)
+
+    scorecard_parser = subparsers.add_parser(
+        "scorecard-render",
+        help="Load all snapshots, render the scorecard, write .fpa/scorecard.md",
+    )
+    scorecard_parser.add_argument("path", nargs="?", default=".")
+    scorecard_parser.set_defaults(handler=command_scorecard_render)
+
+    experiment_list_parser = subparsers.add_parser(
+        "experiment-list",
+        help="List experiment records from .fpa/experiments/",
+    )
+    experiment_list_parser.add_argument("path", nargs="?", default=".")
+    experiment_list_parser.add_argument(
+        "--status",
+        choices=("draft", "proposed", "accepted", "rejected", "reverted"),
+    )
+    experiment_list_parser.set_defaults(handler=command_experiment_list)
+
+    context_pack_parser = subparsers.add_parser(
+        "context-pack",
+        help="Build a bounded task-relevant memory pack from .fpa/ for an agent",
+    )
+    context_pack_parser.add_argument("path", nargs="?", default=".")
+    context_pack_parser.add_argument("--task", required=True)
+    context_pack_parser.add_argument("--category", action="append", default=[])
+    context_pack_parser.add_argument("--limit", type=int, default=8)
+    context_pack_parser.set_defaults(handler=command_context_pack)
+
+    onboarding_render_parser = subparsers.add_parser(
+        "onboarding-render",
+        help="Write business-profile.md and initial-model-architecture.md from intake",
+    )
+    onboarding_render_parser.add_argument("path", nargs="?", default=".")
+    onboarding_render_parser.add_argument("--proposal-summary", required=True)
+    onboarding_render_parser.add_argument("--connector", action="append", default=[])
+    onboarding_render_parser.add_argument("--model-component", action="append", default=[])
+    onboarding_render_parser.add_argument("--generated-skill", action="append", default=[])
+    onboarding_render_parser.add_argument("--risk", action="append", default=[])
+    onboarding_render_parser.add_argument("--validation-check", action="append", default=[])
+    onboarding_render_parser.set_defaults(handler=command_onboarding_render)
+
     return parser
 
 
