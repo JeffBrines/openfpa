@@ -33,12 +33,23 @@ def test_phase_a_reproduces_actual_driver_mechanics(fy, prior):
     assert abs(rec.loc["operating_cash_flow_before_tax", "variance_pct"]) < 1e-6
 
 
-def test_historical_holdout_rejects_broad_recovery_and_proposes_refined_challenger():
+def test_historical_holdout_proposes_refined_challenger_and_broad_is_weaker():
+    """Verify research loop outcomes after the improvement-clamp fix.
+
+    Before clamping, broad recovery (epoch 001) was discarded because a near-zero
+    adjusted_ebitda_error baseline produced an improvement of -18.85, swamping the
+    weighted average. After clamping to [-1, +1], that metric contributes -1.0 and
+    broad squeaks over min_improvement. Refined (epoch 002) is still far stronger.
+    """
     import foxf_model as fm
 
     broad, refined = fm.historical_research_epochs()
-    assert broad.status == "discarded"
-    assert broad.evaluation.promotion_eligible is False
+    assert broad.evaluation.promotion_eligible is True
+    assert broad.evaluation.per_metric_improvement["adjusted_ebitda_error"] == pytest.approx(
+        -1.0
+    )
+    assert broad.evaluation.objective_gain > 0
+    assert broad.evaluation.objective_gain < 0.20
     assert refined.status == "proposed"
     assert refined.evaluation.promotion_eligible is True
     assert refined.evaluation.objective_gain > 0.50

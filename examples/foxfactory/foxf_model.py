@@ -11,6 +11,7 @@ from pathlib import Path
 import pandas as pd
 
 from pyfpa.analysis.divestiture import Carveout, divest, net_debt_to_ebitda
+from pyfpa.analysis.reconcile import reconcile
 from pyfpa.analysis.segments import Segment, roll_up_segments, segments_to_channels
 from pyfpa.config.schemas import (
     DebtInstrument, EntityConfig, OpeningBalances, OpexLine, WorkingCapitalConfig,
@@ -283,10 +284,16 @@ def historical_candidate(
     return cfg, segments
 
 
-def _relative_error(predicted: float, actual: float) -> float:
+def _abs_variance_pct(predicted: float, actual: float) -> float:
+    """Absolute relative error via reconcile -- identical formula to |variance_pct|.
+
+    Delegates to pyfpa.analysis.reconcile so there is one scoring seam.
+    Raises ValueError when actual is zero (same guard as the old helper).
+    """
     if actual == 0:
         raise ValueError("holdout metric actual must be non-zero")
-    return abs(predicted - actual) / abs(actual)
+    row = reconcile({"v": predicted}, {"v": actual}).iloc[0]
+    return abs(float(row["variance_pct"]))
 
 
 def holdout_metrics(
@@ -308,18 +315,18 @@ def holdout_metrics(
         cogs_from_config(cfg, revenue_from_config(cfg)),
     )
     balance_errors = [
-        _relative_error(float(wc["ar"].iloc[-1]), float(bs.loc["accounts_receivable", "FY2025"])),
-        _relative_error(float(wc["ap"].iloc[-1]), float(bs.loc["accounts_payable", "FY2025"])),
-        _relative_error(float(wc["inventory"].iloc[-1]), float(bs.loc["inventory", "FY2025"])),
+        _abs_variance_pct(float(wc["ar"].iloc[-1]), float(bs.loc["accounts_receivable", "FY2025"])),
+        _abs_variance_pct(float(wc["ap"].iloc[-1]), float(bs.loc["accounts_payable", "FY2025"])),
+        _abs_variance_pct(float(wc["inventory"].iloc[-1]), float(bs.loc["inventory", "FY2025"])),
     ]
     return {
-        "revenue_error": _relative_error(
+        "revenue_error": _abs_variance_pct(
             float(annual["revenue"]), float(inc.loc["net_sales", "FY2025"])
         ),
-        "gross_profit_error": _relative_error(
+        "gross_profit_error": _abs_variance_pct(
             float(annual["gross_profit"]), float(inc.loc["gross_profit", "FY2025"])
         ),
-        "adjusted_ebitda_error": _relative_error(
+        "adjusted_ebitda_error": _abs_variance_pct(
             float(roll_up_segments(segments)["adjusted_ebitda"]),
             float(roll_up_segments(segments_for_year("FY2025"))["adjusted_ebitda"]),
         ),
