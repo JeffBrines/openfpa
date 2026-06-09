@@ -7,7 +7,7 @@ with accounting checks required and a complexity penalty applied.
 
 | Epoch | Hypothesis | Status | Objective gain |
 |---|---|---:|--:|
-| foxf-fy2025-001-broad-mean-reversion | After the FY2024 trough, both segment revenue and margins recover halfway toward FY2023. | discarded | -530.0% |
+| foxf-fy2025-001-broad-mean-reversion | After the FY2024 trough, both segment revenue and margins recover halfway toward FY2023. | proposed | +5.5% |
 | foxf-fy2025-002-slow-margin-recovery | After the FY2024 trough, segment revenue partially mean-reverts toward FY2023 while margins recover much more slowly. | proposed | +61.4% |
 
 ## What the loop learned
