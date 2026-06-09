@@ -12,6 +12,13 @@ from pyfpa.research.objective import ResearchObjective
 
 EpochStatus = Literal["generated", "evaluated", "discarded", "proposed", "promoted"]
 
+#: Per-metric improvement is clamped to this magnitude before weighting.
+#: Percent-of-champion improvement saturates at +/-100 percent, so no single
+#: near-zero-baseline metric can dominate the weighted objective.
+#: With min_improvement >= 0 and this clamp, the objective is bounded in
+#: [-1 - complexity_penalty, 1].
+IMPROVEMENT_CLAMP = 1.0
+
 
 class EpochEvaluation(BaseModel):
     champion_metrics: dict[str, float]
@@ -90,6 +97,7 @@ def evaluate_challenger(
                 improvement = (champion - challenger) / denominator
             else:
                 improvement = (challenger - champion) / denominator
+        improvement = max(-IMPROVEMENT_CLAMP, min(IMPROVEMENT_CLAMP, improvement))
         improvements[metric.name] = improvement
         weighted += (metric.weight / total_weight) * improvement
 

@@ -119,6 +119,60 @@ def test_epoch_round_trip_and_promotion_gate(tmp_path):
     save_epoch(epoch, tmp_path, overwrite=True)
 
 
+def test_clamp_prevents_near_zero_baseline_from_dominating():
+    """A near-zero champion baseline should not swamp the weighted objective.
+
+    Three metrics improve ~98 percent each; the fourth has a near-zero champion
+    baseline that triggers a raw improvement far below -1. After clamping, the
+    fourth contributes at most -1.0 to the weighted sum, so weighted_improvement
+    is close to 0.75 * 0.98 - 0.25 * 1.0, not a large negative number.
+    """
+    objective = ResearchObjective(
+        metrics=[
+            MetricObjective(name="m1", weight=0.25, direction="lower"),
+            MetricObjective(name="m2", weight=0.25, direction="lower"),
+            MetricObjective(name="m3", weight=0.25, direction="lower"),
+            MetricObjective(name="near_zero", weight=0.25, direction="lower"),
+        ],
+    )
+    champion = {"m1": 0.10, "m2": 0.10, "m3": 0.10, "near_zero": 0.01}
+    challenger = {"m1": 0.002, "m2": 0.002, "m3": 0.002, "near_zero": 0.20}
+    result = evaluate_challenger(objective, champion, challenger, [])
+
+    assert result.per_metric_improvement["near_zero"] == pytest.approx(-1.0)
+    expected = 0.75 * 0.98 - 0.25 * 1.0
+    assert result.weighted_improvement == pytest.approx(expected, abs=0.01)
+    assert result.weighted_improvement > -5.0
+
+
+def test_clamp_boundary_raw_below_minus_one_clamped_to_minus_one():
+    """Raw improvement of -5 is clamped to -1.0."""
+    objective = ResearchObjective(
+        metrics=[MetricObjective(name="err", weight=1.0, direction="lower")]
+    )
+    champion = {"err": 0.01}
+    challenger = {"err": 0.06}
+    result = evaluate_challenger(objective, champion, challenger, [])
+
+    raw = (0.01 - 0.06) / 0.01
+    assert raw < -1.0
+    assert result.per_metric_improvement["err"] == pytest.approx(-1.0)
+
+
+def test_clamp_boundary_raw_above_plus_one_clamped_to_plus_one():
+    """Raw improvement of +3 is clamped to +1.0."""
+    objective = ResearchObjective(
+        metrics=[MetricObjective(name="err", weight=1.0, direction="higher")]
+    )
+    champion = {"err": 0.01}
+    challenger = {"err": 0.04}
+    result = evaluate_challenger(objective, champion, challenger, [])
+
+    raw = (0.04 - 0.01) / 0.01
+    assert raw > 1.0
+    assert result.per_metric_improvement["err"] == pytest.approx(1.0)
+
+
 def test_ineligible_epoch_cannot_be_proposed():
     evaluation = evaluate_challenger(
         _objective(),
