@@ -1,6 +1,6 @@
 # Contributing to openfpa
 
-openfpa is an open-source experiment from [Guiderail](https://guiderail.example). It's
+openfpa is an open-source experiment from [Guiderail](https://www.guiderail.io). It's
 early, and help is genuinely welcome, whether that's a bug report, a sharper piece of
 CFO judgment, or a whole new industry pack. No promises on response time, and please be
 kind; this is a side-of-the-desk project.

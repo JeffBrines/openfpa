@@ -1,6 +1,6 @@
 # The AI is the analyst. We built its toolbelt.
 
-*Open-sourcing openfpa, an agent-native FP&A workbench. By Guiderail.*
+*Open-sourcing openfpa, an agent-native FP&A workbench. By [Guiderail](https://www.guiderail.io).*
 
 ---
 
@@ -63,6 +63,6 @@ Because the most credible thing you can say about being on the frontier is to sh
 
 Clone it. Point your agent at it. Hand it your numbers. See what they build together.
 
-→ **github.com/JeffBrines/openfpa** · MIT licensed · built by Guiderail
+→ **github.com/JeffBrines/openfpa** · MIT licensed · built by [Guiderail](https://www.guiderail.io)
 
 *The forecast kernel, the 13-week cash model, the data adapters, and the agent skills are regression-tested, including the Fox Factory actual-driver reproduction, historical holdout, and forecast-continuity checks. The Fox run above was a real run, not a script.*
