@@ -16,7 +16,7 @@ class ArchitectureProposal(BaseModel):
     risks: list[str] = Field(default_factory=list)
 
 
-_PROFILE_HEADINGS = {
+PROFILE_HEADINGS: dict[str, str] = {
     "business": "Business Model And Revenue",
     "cash_cycle": "Cash Cycle And Seasonality",
     "finance_structure": "Entity, Financing, And Data Structure",
@@ -38,7 +38,7 @@ def render_business_profile(intake: Intake) -> str:
         "> Generated from `.fpa/intake.md`. Update the intake when facts change.",
         "",
     ]
-    for topic, heading in _PROFILE_HEADINGS.items():
+    for topic, heading in PROFILE_HEADINGS.items():
         lines.extend([f"## {heading}", ""])
         facts = [fact for fact in intake.facts if fact.topic == topic]
         if not facts:

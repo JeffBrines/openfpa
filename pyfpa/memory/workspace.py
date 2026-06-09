@@ -102,27 +102,31 @@ def initialize_workspace(
 
     profile = workspace / "business-profile.md"
     if not profile.exists():
-        profile.write_text(
-            f"# {business_name} Business Profile\n\n"
-            "## Business Model\n\n"
-            "## Revenue Drivers\n\n"
-            "## Cost Structure\n\n"
-            "## Working Capital\n\n"
-            "## Financing\n\n"
-            "## Seasonality And Risks\n"
-        )
+        from pyfpa.memory.onboarding import render_business_profile
+
+        profile.write_text(render_business_profile(Intake(business_name=business_name)))
+
+    scorecard = workspace / "scorecard.md"
+    if not scorecard.exists():
+        scorecard.write_text("# Forecast Scorecard\n")
+
+    learnings = workspace / "learnings.md"
+    if not learnings.exists():
+        learnings.write_text("# Learnings\n")
 
     memory = workspace / "MEMORY.md"
     if not memory.exists():
         memory.write_text(
             f"# {business_name} FP&A Memory\n\n"
-            "- [[intake]]: onboarding facts, evidence, confidence, and open questions\n"
-            "- [[business-profile]]: durable business context\n"
-            "- `sources/`: source inventory and provenance\n"
+            "- `intake.md`: onboarding facts, evidence, confidence, and open questions\n"
+            "- `business-profile.md`: durable business context derived from intake\n"
+            "- `sources/`: source inventory and data provenance\n"
             "- `mappings/`: account and operational-data mappings\n"
-            "- `corrections/`: human-authored corrections\n"
-            "- `forecasts/`: immutable forecast snapshots and scores\n"
-            "- `experiments/`: model hypotheses, evidence, and outcomes\n"
+            "- `corrections/`: typed human corrections recorded by fpa-capture-correction, applied via pyfpa.apply_corrections\n"
+            "- `forecasts/`: immutable forecast snapshots and their scores, written by pyfpa.backtest\n"
+            "- `scorecard.md`: rendered forecast track record across all scored periods\n"
+            "- `learnings.md`: accepted model changes with evidence and backtest delta\n"
+            "- `experiments/`: model hypotheses, evidence, checks, and ratification decisions\n"
             "- `decisions/`: material CFO decisions and approvals\n"
             "- `models/`: champion/challenger history and generated entrypoints\n"
             "- `research/`: immutable autonomous research epochs\n"
