@@ -33,6 +33,14 @@ class Experiment(BaseModel):
     created: str
     status: ExperimentStatus = "draft"
     hypothesis: str
+    snapshot: str | None = Field(
+        default=None,
+        description=(
+            "Label or relative path of the pyfpa.backtest Snapshot that produced "
+            "this experiment's scored forecast, linking the experiment record to "
+            "the forecast evidence behind it."
+        ),
+    )
     cfo_question: str = ""
     rationale: str = ""
     evidence: list[str] = Field(default_factory=list)
