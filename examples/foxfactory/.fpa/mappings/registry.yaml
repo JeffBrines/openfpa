@@ -1,0 +1,132 @@
+schema_version: 1
+mappings:
+- source_id: foxf-income-statement
+  source_value: net_sales
+  target: income_statement.net_sales
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-income-statement
+  source_value: cost_of_sales
+  target: income_statement.cost_of_sales
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-income-statement
+  source_value: gross_profit
+  target: income_statement.gross_profit
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-income-statement
+  source_value: general_and_admin
+  target: income_statement.general_and_admin
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-income-statement
+  source_value: research_and_development
+  target: income_statement.research_and_development
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-income-statement
+  source_value: goodwill_impairment
+  target: income_statement.goodwill_impairment
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-income-statement
+  source_value: operating_income
+  target: income_statement.operating_income
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-income-statement
+  source_value: interest_expense
+  target: income_statement.interest_expense
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-income-statement
+  source_value: income_tax
+  target: income_statement.income_tax
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-income-statement
+  source_value: net_income
+  target: income_statement.net_income
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-balance-sheet
+  source_value: cash
+  target: balance_sheet.cash
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-balance-sheet
+  source_value: accounts_receivable
+  target: balance_sheet.accounts_receivable
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-balance-sheet
+  source_value: inventory
+  target: balance_sheet.inventory
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-balance-sheet
+  source_value: accounts_payable
+  target: balance_sheet.accounts_payable
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-balance-sheet
+  source_value: long_term_debt_total
+  target: balance_sheet.long_term_debt_total
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-balance-sheet
+  source_value: goodwill
+  target: balance_sheet.goodwill
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-cash-flow
+  source_value: operating_cash_flow
+  target: cash_flow.operating_cash_flow
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-cash-flow
+  source_value: capex
+  target: cash_flow.capex
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-cash-flow
+  source_value: depreciation_amortization
+  target: cash_flow.depreciation_amortization
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-segments
+  source_value: PVG.net_sales
+  target: segments.PVG.net_sales
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-segments
+  source_value: PVG.adjusted_ebitda
+  target: segments.PVG.adjusted_ebitda
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-segments
+  source_value: AAG.net_sales
+  target: segments.AAG.net_sales
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-segments
+  source_value: AAG.adjusted_ebitda
+  target: segments.AAG.adjusted_ebitda
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-segments
+  source_value: SSG.net_sales
+  target: segments.SSG.net_sales
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-segments
+  source_value: SSG.adjusted_ebitda
+  target: segments.SSG.adjusted_ebitda
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.
+- source_id: foxf-quarterly
+  source_value: net_sales
+  target: quarterly.net_sales
+  status: mapped
+  rationale: Normalized field used by the Fox worked example.

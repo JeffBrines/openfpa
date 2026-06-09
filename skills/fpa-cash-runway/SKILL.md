@@ -19,8 +19,11 @@ Build the 13-week direct-method cash forecast — the operator's near-term liqui
 
 ## Workflow
 
-1. **Build the schedule** as a `Cash13Config`: `opening_cash`, `weeks` (default 13), and `receipts`/`disbursements` lists of `WeeklyFlow(name, amount, start_week, recurrence)`. Recurrence is `once`, `weekly`, or `biweekly`. Model what you actually know: AR collections on their expected weeks, payroll on its cadence, inventory POs on their due dates, quarterly tax.
-2. **Forecast**:
+1. **Discover the company command.** Run
+   `openfpa entrypoint-list <company-root> --kind cash`. Use the registered cash
+   workflow when one exists.
+2. **Build the schedule** as a `Cash13Config`: `opening_cash`, `weeks` (default 13), and `receipts`/`disbursements` lists of `WeeklyFlow(name, amount, start_week, recurrence)`. Recurrence is `once`, `weekly`, or `biweekly`. Model what you actually know: AR collections on their expected weeks, payroll on its cadence, inventory POs on their due dates, quarterly tax.
+3. **Forecast**:
    ```python
    import pyfpa
    from pyfpa.io.loaders import load_cash13_config
@@ -28,8 +31,8 @@ Build the 13-week direct-method cash forecast — the operator's near-term liqui
    runway = pyfpa.runway_summary(weekly)
    # {'min_cash': -146000.0, 'min_week': 7, 'first_negative_week': 3}
    ```
-3. **Interpret** (see **fpa-cfo-judgment**): a negative `min_cash` means "needs a draw of at least this much," not "insolvent." `first_negative_week` is the deadline to act. Size the credit line to the trough plus a buffer.
-4. **Report**: trough amount + week, first-negative week, and the recommended line size / action.
+4. **Interpret** (see **fpa-cfo-judgment**): a negative `min_cash` means "needs a draw of at least this much," not "insolvent." `first_negative_week` is the deadline to act. Size the credit line to the trough plus a buffer.
+5. **Report**: trough amount + week, first-negative week, and the recommended line size / action.
 
 ## Common mistakes
 

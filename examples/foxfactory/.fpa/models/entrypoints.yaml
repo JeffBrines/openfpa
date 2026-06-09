@@ -1,0 +1,22 @@
+schema_version: 1
+entrypoints:
+- name: foxf-pipeline
+  kind: forecast
+  description: Run Fox actual-driver reproduction, historical holdout, forward forecast,
+    and Marucci sensitivity.
+  command:
+  - python3
+  - run_foxf.py
+  working_directory: .
+  inputs:
+  - data/income_statement.csv
+  - data/balance_sheet.csv
+  - data/cash_flow.csv
+  - data/segments.csv
+  - data/quarterly.csv
+  outputs:
+  - output/reconciliation.md
+  - output/historical-holdout.md
+  - output/forecast-briefing.md
+  - output/divestiture.md
+  - output/foxf-forecast.xlsx

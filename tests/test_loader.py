@@ -66,3 +66,24 @@ def test_opex_name_total_rejected():
     from pyfpa.config.schemas import OpexLine
     with pytest.raises(ValidationError):
         OpexLine(name="Total", kind="fixed", monthly_amount=1.0)
+
+
+def test_duplicate_channel_names_rejected():
+    kwargs = _minimal_kwargs()
+    kwargs["channels"] = [
+        Channel(name="D2C", annual_revenue=1.0, seasonality=[1.0] * 12, cogs_pct=0.5),
+        Channel(name="d2c", annual_revenue=2.0, seasonality=[1.0] * 12, cogs_pct=0.5),
+    ]
+    with pytest.raises(ValidationError, match="channels names must be unique"):
+        EntityConfig(**kwargs)
+
+
+def test_growth_cannot_reduce_revenue_below_zero():
+    with pytest.raises(ValidationError):
+        Channel(
+            name="D2C",
+            annual_revenue=1.0,
+            growth_rate=-1.0,
+            seasonality=[1.0] * 12,
+            cogs_pct=0.5,
+        )

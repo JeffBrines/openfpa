@@ -230,7 +230,7 @@ def write_sources() -> None:
         "(Fox reports segment **Adjusted EBITDA** under ASU 2023-07 — not segment gross",
         "profit or operating income. The table carries FY2023-FY2025.)",
         "",
-        "## Marucci acquisition anchor (Phase C divestiture)",
+        "## Marucci acquisition anchor (Phase D divestiture)",
         "",
         f"FY2023 10-K acquisitions footnote: "
         f"https://www.sec.gov/Archives/edgar/data/1424929/{TENK[2023]}/R97.htm",

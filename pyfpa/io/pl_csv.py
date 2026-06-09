@@ -33,5 +33,7 @@ def read_pl_csv(path: str | Path) -> dict[str, float]:
             account = (row["Account"] or "").strip()
             if not account:
                 continue
+            if account in result:
+                raise ValueError(f"duplicate account in P&L CSV: {account!r}")
             result[account] = _parse_amount(row["Amount"])
     return result

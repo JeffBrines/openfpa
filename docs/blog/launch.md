@@ -43,12 +43,13 @@ You could. Claude is a strong analyst. But a bare agent writes a *fresh* pile of
 
 So I pushed the toolkit at the opposite of a friendly demo: **Fox Factory (NASDAQ: FOXF)**, a real $1.5B public company with three segments, a debt-funded acquisition (Marucci), and a $557M goodwill impairment that turned a revenue-recovery year into a GAAP net loss. Pulled straight from its SEC filings, openfpa:
 
-1. **Reconciled the engine to Fox's audited FY2024 and FY2025 numbers — to the dollar.** Revenue, gross profit, Adjusted EBITDA, and the working-capital cash mechanic, model vs. reported, `+0.00%`.
-2. Was honest about the rest: the impairment and Fox's discrete tax benefits are shown as an explicit **bridge**, not laundered through the model. A lean engine should model the operating business and *say* what it doesn't.
-3. Forecast FY2026–FY2027 at the segment level and modeled a "what if Fox sells Marucci" cash-flow and leverage sensitivity.
-4. And — because Fox reports segment **Adjusted EBITDA**, not gross profit (the new ASU 2023-07 rule) — the agent **wrote itself a `segment-rollup` skill** to fit a company shape the base engine didn't ship with.
+1. **Separated accounting reproduction from forecast validation.** Feeding the engine Fox's reported drivers reproduces FY2024 and FY2025 operating mechanics, but the demo explicitly says this is an arithmetic check, not proof of predictive skill.
+2. **Ran an FY2025 historical holdout.** Using FY2023–FY2024 only, the research loop rejected an over-aggressive recovery hypothesis, refined it, and proposed a challenger that improved every weighted holdout metric.
+3. Was honest about the rest: the impairment and Fox's discrete tax benefits are shown as an explicit **bridge**, not laundered through the model. A lean engine should model the operating business and *say* what it doesn't.
+4. Forecast FY2026–FY2027 at the segment level, preserved working-capital continuity across the year boundary, and modeled a "what if Fox sells Marucci" cash-flow and leverage sensitivity.
+5. And — because Fox reports segment **Adjusted EBITDA**, not gross profit (the new ASU 2023-07 rule) — the agent **wrote itself a `segment-rollup` skill** to fit a company shape the base engine didn't ship with.
 
-Here's the part bare Claude can't give you: **that reconciliation runs in CI.** Every push, on three Python versions, verifies the engine still ties to Fox's real 10-K. It goes red the moment it stops being true.
+Here's the part a one-off analysis usually lacks: **the proof runs in CI.** Every push, on three Python versions, checks the arithmetic reproduction, historical holdout behavior, segment rollup, and forecast continuity.
 
 And it earned that test. Mid-build, the engine had a subtle bug — it added depreciation back into operating cash flow without ever expensing it, silently inflating cash. That is *exactly* the error a one-shot agent emits and nobody catches. openfpa caught it because the logic lives in one tested place; the fix landed once, and a test now guarantees it never comes back. **That's the whole point of a substrate: correctness becomes a property of the system, not a coin-flip on each run.**
 
@@ -62,4 +63,4 @@ Clone it. Point Claude at it. Hand it your numbers. Watch it build you a CFO.
 
 → **github.com/JeffBrines/openfpa** · MIT licensed · built by Guiderail
 
-*The forecast engine, the 13-week cash model, the data adapters, and all seven skills were built test-first with adversarial review at every step. 92 tests, all green — including a CI check that reconciles the engine to Fox Factory's real 10-K on every push. The cold-agent walkthrough and the Fox reconciliation above were real runs, not scripts.*
+*The forecast engine, the 13-week cash model, the data adapters, and the agent skills are regression-tested, including the Fox Factory actual-driver reproduction, historical holdout, and forecast-continuity checks. The cold-agent walkthrough and Fox run above were real runs, not scripts.*

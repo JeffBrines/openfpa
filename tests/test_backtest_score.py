@@ -58,3 +58,19 @@ def test_score_forecast_skips_absent_and_zero_actual_lines():
     assert set(res.per_line) == {"ending_cash"}
     assert res.weights == {"ending_cash": pytest.approx(1.0)}  # renormalized to the one line
     assert res.fitness == pytest.approx(0.10)
+
+
+def test_score_forecast_rejects_insufficient_evidence():
+    with pytest.raises(ValueError, match="no scorable lines"):
+        score_forecast({}, {})
+    with pytest.raises(ValueError, match="no scorable lines"):
+        score_forecast({"ebitda": 100.0}, {"ebitda": 0.0})
+
+
+def test_score_forecast_rejects_non_positive_weights():
+    with pytest.raises(ValueError, match="weights must sum"):
+        score_forecast(
+            {"revenue": 100.0},
+            {"revenue": 90.0},
+            weights={"revenue": 0.0},
+        )
