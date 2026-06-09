@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import yaml
 from pydantic import BaseModel, Field
 
-from pyfpa.research.epochs import ResearchEpoch
+from pyfpa.research.epochs import ResearchEpoch, evaluate_challenger
+
+if TYPE_CHECKING:
+    from pyfpa.research.objective import ResearchObjective
 
 
 class ModelVersion(BaseModel):
@@ -74,12 +78,41 @@ def promote_challenger(
     approved_by: str,
     approved_at: str,
     notes: str = "",
+    objective: "ResearchObjective | None" = None,
 ) -> ModelRegistry:
-    """Promote a challenger only with an explicit human approval record."""
+    """Promote a challenger only with an explicit human approval record.
+
+    When *objective* is provided the stored evaluation is verified by recomputing
+    it from the epoch's champion and challenger metrics. This guards against
+    hand-edited YAML that asserts promotion_eligible=True with garbage metrics.
+    Without *objective* the stored flag is trusted (existing behavior).
+    """
     if not approved_by.strip():
         raise ValueError("promotion requires approved_by")
     if epoch.status != "proposed" or not epoch.evaluation.promotion_eligible:
         raise ValueError("promotion requires a proposed, promotion-eligible epoch")
+    if objective is not None:
+        recomputed = evaluate_challenger(
+            objective,
+            epoch.evaluation.champion_metrics,
+            epoch.evaluation.challenger_metrics,
+            epoch.checks,
+        )
+        # Complexity inputs are not stored on the epoch, so reapply the STORED
+        # complexity cost to the recomputed weighted improvement. Everything
+        # derivable from metrics (weights, clamp, regression guard, hard checks)
+        # is re-derived; only the complexity term is trusted from the record.
+        faithful_gain = recomputed.weighted_improvement - epoch.evaluation.complexity_cost
+        reproduces = (
+            recomputed.hard_checks_passed
+            and recomputed.regression_guard_passed
+            and faithful_gain >= objective.min_improvement
+        )
+        if not reproduces:
+            raise ValueError(
+                "stored evaluation does not reproduce: recomputed evaluation is not "
+                "promotion_eligible -- the stored YAML may have been hand-edited"
+            )
     challenger = next(
         (item for item in registry.challengers if item.model_id == challenger_id),
         None,

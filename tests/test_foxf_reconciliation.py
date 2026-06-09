@@ -33,13 +33,28 @@ def test_phase_a_reproduces_actual_driver_mechanics(fy, prior):
     assert abs(rec.loc["operating_cash_flow_before_tax", "variance_pct"]) < 1e-6
 
 
-def test_historical_holdout_rejects_broad_recovery_and_proposes_refined_challenger():
+def test_historical_holdout_rejects_broad_recovery_via_regression_guard():
+    """Verify the research loop's verdicts are principled, not numerical artifacts.
+
+    Broad recovery (epoch 001) multiplies the adjusted EBITDA error roughly
+    twentyfold versus the champion. The improvement clamp bounds its SCORE
+    contribution at -1.0 (so it no longer swamps the weighted average), but the
+    max_metric_regression guard inspects the RAW regression and blocks
+    eligibility: a challenger that makes a key metric far worse is not a better
+    model, however the aggregate nets out. Refined (epoch 002) improves every
+    metric and stays proposed.
+    """
     import foxf_model as fm
 
     broad, refined = fm.historical_research_epochs()
     assert broad.status == "discarded"
+    assert broad.evaluation.per_metric_improvement["adjusted_ebitda_error"] == pytest.approx(
+        -1.0
+    )  # clamped score contribution
+    assert broad.evaluation.regression_guard_passed is False
     assert broad.evaluation.promotion_eligible is False
     assert refined.status == "proposed"
+    assert refined.evaluation.regression_guard_passed is True
     assert refined.evaluation.promotion_eligible is True
     assert refined.evaluation.objective_gain > 0.50
     for metric, champion in refined.evaluation.champion_metrics.items():

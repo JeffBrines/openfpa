@@ -1,4 +1,4 @@
-# Business Profile — Fox Factory Holding Corp. (NASDAQ: FOXF)
+# Business Profile - Fox Factory Holding Corp. (NASDAQ: FOXF)
 
 > Produced by the `fpa-learn-business` phase. Every openfpa skill reads this
 > first. Grounded entirely in Fox's SEC filings (CIK 1424929); figures trace to
@@ -14,9 +14,9 @@ Fox Factory Holding Corp. designs and manufactures premium ride-dynamics product
 
 | Segment | What it sells | FY2025 net sales | FY2025 Adj EBITDA margin |
 |---|---|--:|--:|
-| **PVG** — Powered Vehicles Group | Off-road / powersports OEM + aftermarket shocks | $488M | 12.8% |
-| **AAG** — Aftermarket Applications Group | Custom vehicle suspension, lift kits, upfitting, wheels & tires | $470M | 11.9% |
-| **SSG** — Specialty Sports Group | Performance mountain/e-bike/gravel components **+ Marucci** baseball/softball | $509M | 21.1% |
+| **PVG** - Powered Vehicles Group | Off-road / powersports OEM + aftermarket shocks | $488M | 12.8% |
+| **AAG** - Aftermarket Applications Group | Custom vehicle suspension, lift kits, upfitting, wheels & tires | $470M | 11.9% |
+| **SSG** - Specialty Sports Group | Performance mountain/e-bike/gravel components **+ Marucci** baseball/softball | $509M | 21.1% |
 
 ## The trajectory that drives everything
 
@@ -25,7 +25,7 @@ Net sales: FY2021 $1,299M → **FY2022 $1,602M (peak)** → FY2023 $1,464M →
 powersports + bike **destocking** cycle. Two segment stories matter most:
 
 - **AAG air pocket:** Adjusted EBITDA collapsed from $127M (FY2023) to $52M
-  (FY2024) — the aftermarket/powersports demand and channel-inventory correction.
+  (FY2024) - the aftermarket/powersports demand and channel-inventory correction.
   Only a partial recovery to $56M in FY2025.
 - **SSG held flat only because of Marucci:** the bike market fell hard, but the
   Nov-2023 Marucci acquisition backfilled net sales (SSG $389M → $511M → $509M).
@@ -33,14 +33,14 @@ powersports + bike **destocking** cycle. Two segment stories matter most:
 ## Marucci acquisition (Nov 14, 2023)
 
 Total consideration **$567.2M** (cash), adding $244.8M goodwill and $279.1M of
-finite-lived intangibles. Debt-funded — interest expense jumped from $19M (FY2023)
+finite-lived intangibles. Debt-funded - interest expense jumped from $19M (FY2023)
 to $55M (FY2024) and the term-loan balance to ~$552M. Marucci is **not reported
 standalone**; it lives inside SSG.
 
 ## The FY2025 impairment
 
 A **$557.3M non-cash goodwill impairment** drove GAAP operating income to -$522.9M
-and a -$544.6M net loss in FY2025 — *even though revenue recovered*. Goodwill fell
+and a -$544.6M net loss in FY2025 - *even though revenue recovered*. Goodwill fell
 from $639.5M to $83.6M. This is the single biggest "watch out" in the financials:
 the headline loss is non-cash and must be separated from operating performance.
 
@@ -62,7 +62,7 @@ scheduled amortization. Deleveraging is a stated priority post-Marucci.
 
 1. Restoring AAG/powersports margins to mid-cycle.
 2. Deleveraging the Marucci debt while demand is soft.
-3. Whether SSG (bikes + Marucci) is the right portfolio — the capital-allocation
+3. Whether SSG (bikes + Marucci) is the right portfolio - the capital-allocation
    question the Phase D divestiture sensitivity frames.
 
 ## Gaps the standard skills don't cover → bespoke skills generated

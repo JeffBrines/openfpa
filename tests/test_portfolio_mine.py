@@ -59,7 +59,7 @@ def test_mine_priors_below_min_support(tmp_path):
 
 
 def test_mine_priors_unanimous_value_is_strongest_cluster(tmp_path):
-    # all three clients run da_monthly=0 — a perfectly tight (unanimous) cluster
+    # all three clients run da_monthly=0 - a perfectly tight (unanimous) cluster
     # should still become a prior, not be dropped by a divide-by-zero mean.
     clients = [_make_client(tmp_path, n, 45.0) for n in ("a", "b", "c")]
     cands = mine_priors(_portfolio(clients), "d2c", min_support=3)

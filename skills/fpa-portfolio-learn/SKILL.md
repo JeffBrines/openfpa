@@ -1,6 +1,6 @@
 ---
 name: fpa-portfolio-learn
-description: Use when you run FP&A for several clients and want your practice to compound — mines patterns that generalize across your same-type clients, validates them by leave-one-out cross-client backtesting, and promotes ratified priors and skills into a local library that seeds every new client. All local; nothing leaves your machine.
+description: Use when you run FP&A for several clients and want your practice to compound - mines patterns that generalize across your same-type clients, validates them by leave-one-out cross-client backtesting, and promotes ratified priors and skills into a local library that seeds every new client. All local; nothing leaves your machine.
 ---
 
 # Portfolio Learn (Loop B)
@@ -9,9 +9,9 @@ description: Use when you run FP&A for several clients and want your practice to
 
 Loop A makes the model better at one client. This makes your *practice* compound:
 client #10 starts smarter than client #1 because your library carries what generalized
-across #1–9. Everything is local — your own book, on your own machine.
+across #1–9. Everything is local - your own book, on your own machine.
 
-**Core principle:** self-improving, never self-ratifying — propose, you accept. The
+**Core principle:** self-improving, never self-ratifying - propose, you accept. The
 objective metric is cross-client: does a pattern learned on some clients fail to
 degrade the *others*' backtest?
 
@@ -37,7 +37,7 @@ clients:
      ones first (by cross-client delta), then unvalidated/judgment.
    - **Skills:** `pyfpa.find_recurring_skills(portfolio, type)` for recurring generated
      skills. Also weigh recurring **structural corrections** across clients (read each
-     `.fpa/corrections/` for `type: structural`) — a human-authored pattern that repeats
+     `.fpa/corrections/` for `type: structural`) - a human-authored pattern that repeats
      is strong signal.
 3. **Present** candidates ranked by evidence (support count + cross-client delta).
 4. **Ratify.** On your acceptance, `pyfpa.promote_prior` / `pyfpa.promote_skill` writes the
@@ -47,7 +47,7 @@ clients:
 
 - Local-only; nothing phones home.
 - At least 3 clients to propose; tight-cluster only; a prior must not degrade held-out clients.
-- You ratify everything; priors are *seeds*, not mandates — each client's Loop A refines.
+- You ratify everything; priors are *seeds*, not mandates - each client's Loop A refines.
 
 ## The payoff
 

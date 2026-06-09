@@ -17,7 +17,7 @@ def _sum_flows(flows: list[WeeklyFlow], weeks: int) -> list[float]:
 
 def cash13_forecast(cfg: Cash13Config) -> pd.DataFrame:
     """Weekly direct-method cash forecast: receipts, disbursements, net, and
-    cumulative ending cash. Raw cash position — no auto-draws."""
+    cumulative ending cash. Raw cash position - no auto-draws."""
     weeks = cfg.weeks
     receipts = _sum_flows(cfg.receipts, weeks)
     disbursements = _sum_flows(cfg.disbursements, weeks)

@@ -477,3 +477,219 @@ def test_usage_errors_are_json_on_stderr(tmp_path):
     payload = json.loads(result.stderr)
     assert payload["ok"] is False
     assert payload["error"]["type"] == "usage_error"
+
+
+def test_correction_record_and_list(tmp_path):
+    assert run_cli("init", str(tmp_path)).returncode == 0
+
+    result = run_cli(
+        "correction-record",
+        str(tmp_path),
+        "--slug", "2026-06-09-dio-lag",
+        "--type", "parametric",
+        "--target", "working_capital.dio_days",
+        "--status", "open",
+        "--date", "2026-06-09",
+        "--notes", "DIO is 45 days not 30.",
+    )
+
+    assert result.returncode == 0, result.stdout
+    payload = output_json(result)["data"]
+    assert payload["slug"] == "2026-06-09-dio-lag"
+    assert payload["type"] == "parametric"
+    assert (tmp_path / ".fpa" / "corrections" / "2026-06-09-dio-lag.md").exists()
+
+    listed = run_cli("correction-list", str(tmp_path))
+
+    assert listed.returncode == 0
+    ldata = output_json(listed)["data"]
+    assert ldata["correction_count"] == 1
+    assert ldata["corrections"][0]["slug"] == "2026-06-09-dio-lag"
+    assert ldata["corrections"][0]["status"] == "open"
+
+
+def test_correction_record_with_override(tmp_path):
+    assert run_cli("init", str(tmp_path)).returncode == 0
+
+    result = run_cli(
+        "correction-record",
+        str(tmp_path),
+        "--slug", "2026-06-09-dio-override",
+        "--type", "parametric",
+        "--target", "working_capital.dio_days",
+        "--status", "applied",
+        "--date", "2026-06-09",
+        "--override-path", "working_capital.dio_days",
+        "--override-value", "45.0",
+    )
+
+    assert result.returncode == 0
+    payload = output_json(result)["data"]
+    assert payload["override"] == {"path": "working_capital.dio_days", "value": 45.0}
+
+
+def test_scorecard_render_empty_workspace(tmp_path):
+    assert run_cli("init", str(tmp_path)).returncode == 0
+
+    result = run_cli("scorecard-render", str(tmp_path))
+
+    assert result.returncode == 0, result.stdout
+    payload = output_json(result)["data"]
+    assert payload["scored_count"] == 0
+    assert payload["unscored_count"] == 0
+    assert (tmp_path / ".fpa" / "scorecard.md").exists()
+
+
+def test_scorecard_render_writes_table_for_scored_snapshots(tmp_path):
+    import yaml
+    assert run_cli("init", str(tmp_path)).returncode == 0
+    forecasts = tmp_path / ".fpa" / "forecasts"
+    forecasts.mkdir(exist_ok=True)
+    snap = {
+        "label": "2026-01",
+        "created": "2026-02-01",
+        "assumptions": {},
+        "predicted": {},
+        "score": {
+            "fitness": 0.05,
+            "per_line": {"revenue": 0.02},
+            "weights": {},
+        },
+    }
+    (forecasts / "2026-01.snapshot.yaml").write_text(yaml.safe_dump(snap))
+
+    result = run_cli("scorecard-render", str(tmp_path))
+
+    assert result.returncode == 0
+    payload = output_json(result)["data"]
+    assert payload["scored_count"] == 1
+    scorecard_text = (tmp_path / ".fpa" / "scorecard.md").read_text()
+    assert "2026-01" in scorecard_text
+
+
+def test_experiment_list_empty(tmp_path):
+    assert run_cli("init", str(tmp_path)).returncode == 0
+
+    result = run_cli("experiment-list", str(tmp_path))
+
+    assert result.returncode == 0, result.stdout
+    payload = output_json(result)["data"]
+    assert payload["experiment_count"] == 0
+    assert payload["experiments"] == []
+
+
+def test_experiment_list_with_experiments(tmp_path):
+    import yaml
+    assert run_cli("init", str(tmp_path)).returncode == 0
+    experiments_dir = tmp_path / ".fpa" / "experiments"
+    experiments_dir.mkdir(exist_ok=True)
+    exp = {
+        "schema_version": 1,
+        "slug": "2026-06-09-dio-lag",
+        "created": "2026-06-09",
+        "status": "draft",
+        "hypothesis": "DIO is 45 days.",
+        "snapshot": None,
+        "cfo_question": "",
+        "rationale": "",
+        "evidence": [],
+        "training_periods": [],
+        "holdout_periods": [],
+        "files_changed": [],
+        "metrics_before": {},
+        "metrics_after": {},
+        "checks": [],
+        "decision": None,
+    }
+    (experiments_dir / "2026-06-09-dio-lag.experiment.yaml").write_text(yaml.safe_dump(exp))
+
+    result = run_cli("experiment-list", str(tmp_path))
+
+    assert result.returncode == 0
+    payload = output_json(result)["data"]
+    assert payload["experiment_count"] == 1
+    first = payload["experiments"][0]
+    assert first["slug"] == "2026-06-09-dio-lag"
+    assert first["status"] == "draft"
+    assert first["snapshot"] is None
+
+
+def test_context_pack_returns_markdown(tmp_path):
+    assert run_cli("init", str(tmp_path), "--business-name", "Acme").returncode == 0
+
+    result = run_cli(
+        "context-pack",
+        str(tmp_path),
+        "--task", "review cash forecast assumptions",
+    )
+
+    assert result.returncode == 0, result.stdout
+    payload = output_json(result)["data"]
+    assert "# Task Memory Pack" in payload["pack"]
+    assert payload["hit_count"] >= 0
+
+
+def test_context_pack_respects_limit(tmp_path):
+    assert run_cli("init", str(tmp_path), "--business-name", "Acme").returncode == 0
+
+    result = run_cli(
+        "context-pack",
+        str(tmp_path),
+        "--task", "forecast revenue",
+        "--limit", "2",
+    )
+
+    assert result.returncode == 0
+    payload = output_json(result)["data"]
+    assert payload["hit_count"] <= 2
+
+
+def test_onboarding_render_requires_ready_intake(tmp_path):
+    assert run_cli("init", str(tmp_path), "--business-name", "Acme").returncode == 0
+
+    result = run_cli(
+        "onboarding-render",
+        str(tmp_path),
+        "--proposal-summary", "Build a driver-based forecast.",
+    )
+
+    assert result.returncode == 1
+    payload = output_json(result)
+    assert payload["error"]["type"] == "onboarding_render_failed"
+
+
+def test_onboarding_render_writes_profile_and_proposal(tmp_path):
+    from pyfpa.memory.intake import (
+        load_intake,
+        next_intake_questions,
+        record_intake_fact,
+        save_intake,
+    )
+    from pyfpa.memory.workspace import workspace_path
+
+    assert run_cli("init", str(tmp_path), "--business-name", "Acme").returncode == 0
+    workspace = workspace_path(tmp_path)
+    intake_path = workspace / "intake.md"
+    intake = load_intake(intake_path)
+    while questions := next_intake_questions(intake):
+        for q in questions:
+            intake = record_intake_fact(
+                intake, key=q.key, answer=f"Known {q.key}",
+                source_type="user", sources=["CFO interview"],
+            )
+    save_intake(intake, intake_path)
+
+    result = run_cli(
+        "onboarding-render",
+        str(tmp_path),
+        "--proposal-summary", "Build a driver-based forecast.",
+        "--connector", "QuickBooks P&L",
+        "--model-component", "Channel revenue model",
+    )
+
+    assert result.returncode == 0, result.stdout
+    payload = output_json(result)["data"]
+    assert payload["profile_path"].endswith("business-profile.md")
+    assert payload["proposal_path"].endswith("initial-model-architecture.md")
+    assert (tmp_path / ".fpa" / "business-profile.md").exists()
+    assert (tmp_path / ".fpa" / "decisions" / "initial-model-architecture.md").exists()

@@ -12,7 +12,7 @@ class Segment(BaseModel):
     """A reportable business segment.
 
     Public companies that follow ASU 2023-07 disclose segment **net sales** and
-    segment **Adjusted EBITDA** — not segment gross profit or operating income
+    segment **Adjusted EBITDA** - not segment gross profit or operating income
     (segment COGS is generally not broken out). This model mirrors that: each
     segment carries its net sales and an Adjusted-EBITDA margin.
     """
@@ -60,7 +60,7 @@ def segments_to_channels(segments: list[Segment], *, cogs_pct: float) -> list[Ch
     Each segment becomes a revenue channel carrying its own net sales and growth
     rate, so the consolidated total reflects the segment mix. Segment-level COGS
     is not disclosed, so the **consolidated blended** ``cogs_pct`` is applied to
-    every segment — by construction the channels sum back to consolidated COGS.
+    every segment - by construction the channels sum back to consolidated COGS.
     Segment Adjusted-EBITDA margins live on the segment view, not here.
     """
     return [

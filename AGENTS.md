@@ -39,6 +39,12 @@ small, trustworthy accounting kernel.
   - `openfpa entrypoint-list <company-root>` before generated workflows
   - `openfpa entrypoint-register <company-root> ...` after validating a command
   - `openfpa doctor <company-root>` before relying on workspace state
+  - `openfpa correction-record <company-root> --slug <slug> --type <type> --target <target> --date <date>` after establishing a correction
+  - `openfpa correction-list <company-root>` to review recorded corrections
+  - `openfpa scorecard-render <company-root>` to rebuild scorecard.md from all snapshots
+  - `openfpa experiment-list <company-root>` to review experiment records
+  - `openfpa context-pack <company-root> --task "<task>"` to retrieve bounded memory for a task
+  - `openfpa onboarding-render <company-root> --proposal-summary "<summary>"` when intake is ready
 - The CLI emits JSON and performs deterministic workspace operations. Read its
   output as evidence; do not treat it as the reasoning engine.
 - If the console script is unavailable in a source checkout, use

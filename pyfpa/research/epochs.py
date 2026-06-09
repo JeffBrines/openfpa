@@ -12,6 +12,13 @@ from pyfpa.research.objective import ResearchObjective
 
 EpochStatus = Literal["generated", "evaluated", "discarded", "proposed", "promoted"]
 
+#: Per-metric improvement is clamped to this magnitude before weighting.
+#: Percent-of-champion improvement saturates at +/-100 percent, so no single
+#: near-zero-baseline metric can dominate the weighted objective.
+#: With min_improvement >= 0 and this clamp, the objective is bounded in
+#: [-1 - complexity_penalty, 1].
+IMPROVEMENT_CLAMP = 1.0
+
 
 class EpochEvaluation(BaseModel):
     champion_metrics: dict[str, float]
@@ -21,6 +28,7 @@ class EpochEvaluation(BaseModel):
     complexity_cost: float
     objective_gain: float
     hard_checks_passed: bool
+    regression_guard_passed: bool = True
     promotion_eligible: bool
 
 
@@ -74,22 +82,32 @@ def evaluate_challenger(
     total_weight = sum(metric.weight for metric in objective.metrics)
     improvements: dict[str, float] = {}
     weighted = 0.0
+    regression_guard_passed = True
     for metric in objective.metrics:
         champion = champion_metrics[metric.name]
         challenger = challenger_metrics[metric.name]
         if champion == 0:
             if challenger == 0:
-                improvement = 0.0
+                raw_improvement = 0.0
             elif metric.direction == "lower":
-                improvement = -1.0
+                raw_improvement = -1.0
             else:
-                improvement = 1.0
+                raw_improvement = 1.0
         else:
             denominator = abs(champion)
             if metric.direction == "lower":
-                improvement = (champion - challenger) / denominator
+                raw_improvement = (champion - challenger) / denominator
             else:
-                improvement = (challenger - champion) / denominator
+                raw_improvement = (challenger - champion) / denominator
+        # The guard inspects the RAW improvement: the clamp below bounds the
+        # score, but must not launder a catastrophic single-metric regression
+        # into a passable aggregate.
+        if (
+            objective.max_metric_regression is not None
+            and raw_improvement < -objective.max_metric_regression
+        ):
+            regression_guard_passed = False
+        improvement = max(-IMPROVEMENT_CLAMP, min(IMPROVEMENT_CLAMP, raw_improvement))
         improvements[metric.name] = improvement
         weighted += (metric.weight / total_weight) * improvement
 
@@ -108,7 +126,12 @@ def evaluate_challenger(
         complexity_cost=complexity_cost,
         objective_gain=objective_gain,
         hard_checks_passed=hard_checks_passed,
-        promotion_eligible=hard_checks_passed and objective_gain >= objective.min_improvement,
+        regression_guard_passed=regression_guard_passed,
+        promotion_eligible=(
+            hard_checks_passed
+            and regression_guard_passed
+            and objective_gain >= objective.min_improvement
+        ),
     )
 
 

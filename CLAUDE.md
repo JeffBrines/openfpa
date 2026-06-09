@@ -46,6 +46,13 @@ and register a tested company-specific reconciliation command.
 Do not force onboarding for a narrow request. Ask before accessing external
 systems or connectors.
 
+Keep the learning loop current. When a human flags something off, record it with
+`openfpa correction-record` (list with `correction-list`). After scoring closed
+periods, refresh the track record with `openfpa scorecard-render` and review past
+hypotheses with `openfpa experiment-list`. Before broad company work, build a
+bounded context pack with `openfpa context-pack`. Regenerate onboarding documents
+from intake with `openfpa onboarding-render`.
+
 After the initial architecture is approved, use `fpa-research-loop` for bounded
 autonomous improvement. You may generate, evaluate, and discard challengers
 without asking for approval each time. Human approval is required for promotion

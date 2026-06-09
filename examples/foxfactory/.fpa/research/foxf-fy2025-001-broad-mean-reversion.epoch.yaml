@@ -43,11 +43,12 @@ evaluation:
   per_metric_improvement:
     revenue_error: 0.4785899182561259
     gross_profit_error: 0.9639856112797087
-    adjusted_ebitda_error: -18.84857192994629
+    adjusted_ebitda_error: -1.0
     working_capital_balance_error: 0.09797380493889486
-  weighted_improvement: -5.298602720263328
+  weighted_improvement: 0.05596885872055847
   complexity_cost: 0.0010000000000000009
-  objective_gain: -5.299602720263328
+  objective_gain: 0.05496885872055847
   hard_checks_passed: true
+  regression_guard_passed: false
   promotion_eligible: false
 notes: A deliberately simple annual holdout, not a claim of production-grade validation.

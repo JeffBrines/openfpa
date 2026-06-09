@@ -72,3 +72,28 @@ def test_proposed_experiment_cannot_claim_a_decision():
     data["status"] = "proposed"
     with pytest.raises(ValidationError, match="cannot have a decision"):
         Experiment.model_validate(data)
+
+
+def test_experiment_snapshot_field_round_trips(tmp_path):
+    """snapshot field is preserved on save/load and defaults to None."""
+    base = _accepted_experiment()
+
+    # defaults to None when absent
+    assert base.snapshot is None
+
+    # explicit snapshot label round-trips
+    with_snapshot = base.model_copy(
+        update={"snapshot": "forecasts/2025-12.snapshot.yaml"}
+    )
+    path = save_experiment(with_snapshot, tmp_path)
+    loaded = load_experiment(path)
+    assert loaded.snapshot == "forecasts/2025-12.snapshot.yaml"
+
+
+def test_experiment_without_snapshot_round_trips(tmp_path):
+    """Experiments without a snapshot still save and load correctly."""
+    experiment = _accepted_experiment()
+    path = save_experiment(experiment, tmp_path)
+    loaded = load_experiment(path)
+    assert loaded.snapshot is None
+    assert loaded == experiment

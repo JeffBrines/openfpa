@@ -1,4 +1,4 @@
-# Phase C — FY2026-FY2027 segment-level forecast
+# Phase C - FY2026-FY2027 segment-level forecast
 
 Base = FY2025 actuals. FY2026 net-sales growth is anchored to the reported
 Q1 FY2026 print ($368.7M vs Q1 FY2025 $355.0M = **+3.8% YoY**;

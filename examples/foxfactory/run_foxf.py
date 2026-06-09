@@ -1,4 +1,4 @@
-"""Fox Factory worked example — full pipeline.
+"""Fox Factory worked example - full pipeline.
 
 Phase A reproduces audited FY2024/FY2025 operating mechanics from actual drivers.
 Phase B replays two FY2025 champion/challenger holdout epochs.
@@ -171,11 +171,11 @@ def _lev(x: float) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Phase A — actual-driver reproduction
+# Phase A - actual-driver reproduction
 # --------------------------------------------------------------------------- #
 def phase_a() -> str:
     lines = [
-        "# Phase A — Actual-driver accounting reproduction",
+        "# Phase A - Actual-driver accounting reproduction",
         "",
         "The pyfpa engine is driven with Fox Factory's **actual** reported drivers",
         "(segment net sales, blended COGS%, working-capital days, D&A, capex) and",
@@ -200,11 +200,11 @@ def phase_a() -> str:
     lines += [
         "## What the engine does not model (documented bridge)",
         "",
-        "- **FY2025 goodwill impairment of $557.3M** (non-cash) — drove GAAP operating",
+        "- **FY2025 goodwill impairment of $557.3M** (non-cash) - drove GAAP operating",
         "  income to -$522.9M and a -$544.6M net loss even as revenue recovered. The",
         "  lean engine models the operating business; the impairment is a discrete",
         "  non-cash item shown here, not forced through the engine.",
-        "- **Discrete tax items** — Fox booked tax *benefits* in FY2024/FY2025; the",
+        "- **Discrete tax items** - Fox booked tax *benefits* in FY2024/FY2025; the",
         "  engine's tax model only taxes positive income, so net income is bridged",
         "  separately, not reconciled here.",
         "- This phase therefore validates the **operating arithmetic and the",
@@ -216,12 +216,12 @@ def phase_a() -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Phase B — historical holdout research
+# Phase B - historical holdout research
 # --------------------------------------------------------------------------- #
 def phase_b() -> str:
     epochs = fm.historical_research_epochs()
     lines = [
-        "# Phase B — FY2025 historical holdout research",
+        "# Phase B - FY2025 historical holdout research",
         "",
         "The research loop fits only on FY2023-FY2024 and holds FY2025 out.",
         "The champion is a flat FY2024 run rate. Each challenger is scored on",
@@ -369,7 +369,7 @@ def register_demo_lineage(workspace: Path) -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Phase C — forward forecast
+# Phase C - forward forecast
 # --------------------------------------------------------------------------- #
 def _annual(forecast: pd.DataFrame, year: int) -> pd.Series:
     return forecast[forecast.index.year == year].sum()
@@ -379,7 +379,7 @@ def phase_c(forecast: pd.DataFrame, segs: dict) -> str:
     q1_prev, q1_curr = fm.q1_values()
     q1 = fm.q1_yoy()
     lines = [
-        "# Phase C — FY2026-FY2027 segment-level forecast",
+        "# Phase C - FY2026-FY2027 segment-level forecast",
         "",
         "Base = FY2025 actuals. FY2026 net-sales growth is anchored to the reported",
         f"Q1 FY2026 print ({_m(q1_curr)} vs Q1 FY2025 {_m(q1_prev)} = **{q1 * 100:+.1f}% YoY**;",
@@ -414,7 +414,7 @@ def phase_c(forecast: pd.DataFrame, segs: dict) -> str:
 
 
 # --------------------------------------------------------------------------- #
-# Phase D — Marucci sensitivity
+# Phase D - Marucci sensitivity
 # --------------------------------------------------------------------------- #
 def phase_d(forecast: pd.DataFrame) -> tuple[str, pd.DataFrame, pd.DataFrame]:
     bs = fm.balance_sheet()
@@ -422,9 +422,9 @@ def phase_d(forecast: pd.DataFrame) -> tuple[str, pd.DataFrame, pd.DataFrame]:
     grid = fm.divestiture_grid(forecast, debt_balance=debt)
     proceeds_grid = fm.proceeds_sensitivity(forecast, debt_balance=debt, sale_month=12)
     lines = [
-        "# Phase D — Marucci divestiture sensitivity",
+        "# Phase D - Marucci divestiture sensitivity",
         "",
-        f"**Most assumption-heavy part of the exercise — a labeled sensitivity.**",
+        f"**Most assumption-heavy part of the exercise - a labeled sensitivity.**",
         "Marucci sits inside SSG and is not reported standalone. Estimates are anchored",
         "to the acquisition disclosures: Fox paid **$567.2M** (Nov 2023), incl. $279M of",
         f"intangibles. Assumed standalone: ~{_m(fm.MARUCCI['revenue'])} net sales, "
@@ -432,7 +432,7 @@ def phase_d(forecast: pd.DataFrame) -> tuple[str, pd.DataFrame, pd.DataFrame]:
         f"(~{_m(fm.MARUCCI['revenue'] * fm.MARUCCI['ebitda_margin'])} EBITDA).",
         "",
         f"Sale proceeds default to **{_m(fm.DEFAULT_PROCEEDS)}** (a markdown from the",
-        "$567M paid — sports-equipment multiples compressed since 2023). Proceeds pay",
+        "$567M paid - sports-equipment multiples compressed since 2023). Proceeds pay",
         f"down the term loan at {fm.DEBT_RATE * 100:.0f}%, cutting interest. One-time",
         "proceeds are excluded from FCF; they reduce net debt for the leverage line.",
         "",
@@ -462,7 +462,7 @@ def phase_d(forecast: pd.DataFrame) -> tuple[str, pd.DataFrame, pd.DataFrame]:
         )
     lines += [
         "",
-        "Whether the deleveraging is worth the lost FCF — and at what price — is the",
+        "Whether the deleveraging is worth the lost FCF - and at what price - is the",
         "capital-allocation question this sensitivity frames.",
         "",
     ]

@@ -1,12 +1,12 @@
-# Phase D — Marucci divestiture sensitivity
+# Phase D - Marucci divestiture sensitivity
 
-**Most assumption-heavy part of the exercise — a labeled sensitivity.**
+**Most assumption-heavy part of the exercise - a labeled sensitivity.**
 Marucci sits inside SSG and is not reported standalone. Estimates are anchored
 to the acquisition disclosures: Fox paid **$567.2M** (Nov 2023), incl. $279M of
 intangibles. Assumed standalone: ~$300.0M net sales, ~25% EBITDA margin (~$75.0M EBITDA).
 
 Sale proceeds default to **$300.0M** (a markdown from the
-$567M paid — sports-equipment multiples compressed since 2023). Proceeds pay
+$567M paid - sports-equipment multiples compressed since 2023). Proceeds pay
 down the term loan at 8%, cutting interest. One-time
 proceeds are excluded from FCF; they reduce net debt for the leverage line.
 
@@ -34,5 +34,5 @@ Marucci EBITDA (~$75.0M). More proceeds retire more debt.
 | 8x EBITDA | $600.0M | $218.7M | net cash |
 | 12x EBITDA | $900.0M | $237.4M | net cash |
 
-Whether the deleveraging is worth the lost FCF — and at what price — is the
+Whether the deleveraging is worth the lost FCF - and at what price - is the
 capital-allocation question this sensitivity frames.

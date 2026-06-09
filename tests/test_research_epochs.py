@@ -119,6 +119,60 @@ def test_epoch_round_trip_and_promotion_gate(tmp_path):
     save_epoch(epoch, tmp_path, overwrite=True)
 
 
+def test_clamp_prevents_near_zero_baseline_from_dominating():
+    """A near-zero champion baseline should not swamp the weighted objective.
+
+    Three metrics improve ~98 percent each; the fourth has a near-zero champion
+    baseline that triggers a raw improvement far below -1. After clamping, the
+    fourth contributes at most -1.0 to the weighted sum, so weighted_improvement
+    is close to 0.75 * 0.98 - 0.25 * 1.0, not a large negative number.
+    """
+    objective = ResearchObjective(
+        metrics=[
+            MetricObjective(name="m1", weight=0.25, direction="lower"),
+            MetricObjective(name="m2", weight=0.25, direction="lower"),
+            MetricObjective(name="m3", weight=0.25, direction="lower"),
+            MetricObjective(name="near_zero", weight=0.25, direction="lower"),
+        ],
+    )
+    champion = {"m1": 0.10, "m2": 0.10, "m3": 0.10, "near_zero": 0.01}
+    challenger = {"m1": 0.002, "m2": 0.002, "m3": 0.002, "near_zero": 0.20}
+    result = evaluate_challenger(objective, champion, challenger, [])
+
+    assert result.per_metric_improvement["near_zero"] == pytest.approx(-1.0)
+    expected = 0.75 * 0.98 - 0.25 * 1.0
+    assert result.weighted_improvement == pytest.approx(expected, abs=0.01)
+    assert result.weighted_improvement > -5.0
+
+
+def test_clamp_boundary_raw_below_minus_one_clamped_to_minus_one():
+    """Raw improvement of -5 is clamped to -1.0."""
+    objective = ResearchObjective(
+        metrics=[MetricObjective(name="err", weight=1.0, direction="lower")]
+    )
+    champion = {"err": 0.01}
+    challenger = {"err": 0.06}
+    result = evaluate_challenger(objective, champion, challenger, [])
+
+    raw = (0.01 - 0.06) / 0.01
+    assert raw < -1.0
+    assert result.per_metric_improvement["err"] == pytest.approx(-1.0)
+
+
+def test_clamp_boundary_raw_above_plus_one_clamped_to_plus_one():
+    """Raw improvement of +3 is clamped to +1.0."""
+    objective = ResearchObjective(
+        metrics=[MetricObjective(name="err", weight=1.0, direction="higher")]
+    )
+    champion = {"err": 0.01}
+    challenger = {"err": 0.04}
+    result = evaluate_challenger(objective, champion, challenger, [])
+
+    raw = (0.04 - 0.01) / 0.01
+    assert raw > 1.0
+    assert result.per_metric_improvement["err"] == pytest.approx(1.0)
+
+
 def test_ineligible_epoch_cannot_be_proposed():
     evaluation = evaluate_challenger(
         _objective(),
@@ -136,3 +190,56 @@ def test_ineligible_epoch_cannot_be_proposed():
             challenger_id="model-v2",
             evaluation=evaluation,
         )
+
+
+def _guarded_objective(max_regression=0.5):
+    return ResearchObjective(
+        metrics=[
+            MetricObjective(name="cash_error", weight=0.7, direction="lower"),
+            MetricObjective(name="bias_control", weight=0.3, direction="higher"),
+        ],
+        hard_checks=["holdout"],
+        min_improvement=0.0,
+        max_metric_regression=max_regression,
+    )
+
+
+def _guard_checks():
+    return [ExperimentCheck(name="holdout", result="pass")]
+
+
+def test_regression_guard_blocks_clamped_catastrophic_regression():
+    # cash_error regresses 10x (raw improvement -9.0); the clamp bounds the SCORE
+    # at -1.0, but the guard must still block eligibility on the raw value.
+    result = evaluate_challenger(
+        _guarded_objective(max_regression=0.5),
+        {"cash_error": 0.01, "bias_control": 0.50},
+        {"cash_error": 0.10, "bias_control": 1.00},
+        _guard_checks(),
+    )
+    assert result.per_metric_improvement["cash_error"] == pytest.approx(-1.0)  # clamped
+    assert result.regression_guard_passed is False
+    assert result.promotion_eligible is False
+
+
+def test_regression_guard_boundary_exactly_at_bound_passes():
+    # raw improvement exactly -0.5 is at the bound, not beyond it
+    result = evaluate_challenger(
+        _guarded_objective(max_regression=0.5),
+        {"cash_error": 0.10, "bias_control": 0.50},
+        {"cash_error": 0.15, "bias_control": 1.00},
+        _guard_checks(),
+    )
+    assert result.per_metric_improvement["cash_error"] == pytest.approx(-0.5)
+    assert result.regression_guard_passed is True
+
+
+def test_regression_guard_disabled_by_default():
+    # max_metric_regression=None preserves prior behavior
+    result = evaluate_challenger(
+        _guarded_objective(max_regression=None),
+        {"cash_error": 0.01, "bias_control": 0.50},
+        {"cash_error": 0.10, "bias_control": 1.00},
+        _guard_checks(),
+    )
+    assert result.regression_guard_passed is True

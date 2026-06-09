@@ -23,6 +23,12 @@ class ResearchObjective(BaseModel):
     hard_checks: list[str] = Field(default_factory=list)
     min_improvement: float = Field(default=0.0, ge=0)
     complexity_penalty: float = Field(default=0.0, ge=0)
+    max_metric_regression: float | None = Field(default=None, gt=0)
+    """Hard guard on raw per-metric regression. When set, a challenger whose raw
+    (pre-clamp) improvement on ANY metric falls below -max_metric_regression is
+    never promotion eligible, regardless of its weighted score. This keeps the
+    clamp from laundering a catastrophic single-metric regression into a
+    passable aggregate. None disables the guard."""
 
     @model_validator(mode="after")
     def _unique_metrics(self) -> "ResearchObjective":
