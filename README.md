@@ -183,7 +183,7 @@ The `openfpa` command is a machine-oriented control surface for Codex, Claude
 Code, and other capable coding agents. It emits JSON, performs deterministic
 workspace operations, and leaves reasoning and conversation to the host agent.
 
-The initial command set is:
+The command set is:
 
 ```text
 openfpa init
@@ -203,7 +203,16 @@ openfpa intake-record
 openfpa doctor
 openfpa entrypoint-list
 openfpa entrypoint-register
+openfpa correction-record
+openfpa correction-list
+openfpa scorecard-render
+openfpa experiment-list
+openfpa context-pack
+openfpa onboarding-render
 ```
+
+In a source checkout without the `openfpa` console script installed, every
+command also works as `python3 -m pyfpa.cli <command>`.
 
 The CLI can:
 
