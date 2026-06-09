@@ -1,7 +1,7 @@
 schema_version: 1
 epoch_id: foxf-fy2025-001-broad-mean-reversion
 created: '2026-06-09'
-status: proposed
+status: discarded
 hypothesis: After the FY2024 trough, both segment revenue and margins recover halfway
   toward FY2023.
 champion_id: foxf-flat-fy2024-run-rate
@@ -49,5 +49,6 @@ evaluation:
   complexity_cost: 0.0010000000000000009
   objective_gain: 0.05496885872055847
   hard_checks_passed: true
-  promotion_eligible: true
+  regression_guard_passed: false
+  promotion_eligible: false
 notes: A deliberately simple annual holdout, not a claim of production-grade validation.

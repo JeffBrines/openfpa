@@ -17,3 +17,4 @@ hard_checks:
 - working capital continuity
 min_improvement: 0.02
 complexity_penalty: 0.01
+max_metric_regression: 0.5

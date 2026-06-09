@@ -49,5 +49,6 @@ evaluation:
   complexity_cost: 0.0010000000000000009
   objective_gain: 0.6141956078597884
   hard_checks_passed: true
+  regression_guard_passed: true
   promotion_eligible: true
 notes: A deliberately simple annual holdout, not a claim of production-grade validation.

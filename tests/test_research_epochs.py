@@ -190,3 +190,56 @@ def test_ineligible_epoch_cannot_be_proposed():
             challenger_id="model-v2",
             evaluation=evaluation,
         )
+
+
+def _guarded_objective(max_regression=0.5):
+    return ResearchObjective(
+        metrics=[
+            MetricObjective(name="cash_error", weight=0.7, direction="lower"),
+            MetricObjective(name="bias_control", weight=0.3, direction="higher"),
+        ],
+        hard_checks=["holdout"],
+        min_improvement=0.0,
+        max_metric_regression=max_regression,
+    )
+
+
+def _guard_checks():
+    return [ExperimentCheck(name="holdout", result="pass")]
+
+
+def test_regression_guard_blocks_clamped_catastrophic_regression():
+    # cash_error regresses 10x (raw improvement -9.0); the clamp bounds the SCORE
+    # at -1.0, but the guard must still block eligibility on the raw value.
+    result = evaluate_challenger(
+        _guarded_objective(max_regression=0.5),
+        {"cash_error": 0.01, "bias_control": 0.50},
+        {"cash_error": 0.10, "bias_control": 1.00},
+        _guard_checks(),
+    )
+    assert result.per_metric_improvement["cash_error"] == pytest.approx(-1.0)  # clamped
+    assert result.regression_guard_passed is False
+    assert result.promotion_eligible is False
+
+
+def test_regression_guard_boundary_exactly_at_bound_passes():
+    # raw improvement exactly -0.5 is at the bound, not beyond it
+    result = evaluate_challenger(
+        _guarded_objective(max_regression=0.5),
+        {"cash_error": 0.10, "bias_control": 0.50},
+        {"cash_error": 0.15, "bias_control": 1.00},
+        _guard_checks(),
+    )
+    assert result.per_metric_improvement["cash_error"] == pytest.approx(-0.5)
+    assert result.regression_guard_passed is True
+
+
+def test_regression_guard_disabled_by_default():
+    # max_metric_regression=None preserves prior behavior
+    result = evaluate_challenger(
+        _guarded_objective(max_regression=None),
+        {"cash_error": 0.01, "bias_control": 0.50},
+        {"cash_error": 0.10, "bias_control": 1.00},
+        _guard_checks(),
+    )
+    assert result.regression_guard_passed is True

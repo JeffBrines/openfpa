@@ -208,6 +208,10 @@ HOLDOUT_OBJECTIVE = ResearchObjective(
     hard_checks=["holdout separation", "segment rollup", "working capital continuity"],
     min_improvement=0.02,
     complexity_penalty=0.01,
+    # No single holdout metric may regress more than 50 percent versus the
+    # champion, however good the weighted aggregate looks. A challenger that
+    # multiplies the EBITDA error twentyfold is not a better model.
+    max_metric_regression=0.50,
 )
 
 
