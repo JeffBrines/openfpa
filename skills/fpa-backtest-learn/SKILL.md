@@ -13,13 +13,16 @@ and proposes improvements a human ratifies. The objective metric is reconciliati
 error against the user's own books (`pyfpa.score_forecast`) — the FP&A analog of a
 validation loss.
 
-**Core principle:** self-improving, but never self-ratifying. The loop proposes;
-a human accepts. Everything it learns lives as plain files in `.fpa/` the user owns.
+**Core principle:** self-experimenting, but never self-promoting. The AI may run
+and discard bounded challengers autonomously; a human approves replacement of
+the champion. Everything learned lives as plain files in `.fpa/`.
 
 ## Memory (`.fpa/`)
 
 - `forecasts/<period>.snapshot.yaml` — each forecast's assumptions + predictions, and (after close) its score.
 - `scorecard.md` — the running track record (rendered, never hand-edited).
+- `experiments/<slug>.experiment.yaml` — each tested model change, its evidence,
+  changed files, checks, before/after metrics, and decision.
 - `learnings.md` — every accepted change: what, the evidence, the backtest delta, the date.
 
 ## Workflow
@@ -34,7 +37,10 @@ a human accepts. Everything it learns lives as plain files in `.fpa/` the user o
    / working-capital timing). **Run the fpa-cfo-judgment one-time-item screen first** —
    never blame the model for a one-off.
    - **Monitor applied corrections:** if a `type: parametric` correction's target line keeps missing, flag it as possibly stale (`applied → superseded`) for the human — never auto-revert.
-4. **Propose**, tagged by type:
+4. **Create an experiment** before changing the model. State the financial
+   hypothesis, CFO question, evidence, fit periods, holdout periods, and files
+   expected to change. Save it with `pyfpa.save_experiment`.
+5. **Propose**, tagged by type:
    - **Parametric** (an assumption change): re-score it with `holdout_backtest` on the
      company's history. Surface it **only if it lowers holdout fitness** (not in-sample),
      ranked by the delta. Clamp the proposed move with `magnitude_cap` (±25%/cycle).
@@ -42,8 +48,15 @@ a human accepts. Everything it learns lives as plain files in `.fpa/` the user o
      **only** when `persistent_miss` is true for the line (same-signed across K≥2 closes)
      and it survived the one-time screen. Hand it to **fpa-learn-business** to generate the
      skill *on approval* — propose, don't auto-write.
-5. **Ratify + log.** Present proposals; the human accepts/rejects. On accept, update the
-   config and append to `learnings.md` (what, evidence, holdout delta, date). Reversible.
+6. **Evaluate.** Record before/after metrics and explicit checks in the experiment.
+   A model change that breaks reconciliation or another accounting invariant is
+   failed even if one headline metric improves.
+7. **Ratify + log.** Present proposals; the human accepts/rejects. On accept, add
+   an `ExperimentDecision`, set `status: accepted`, save with explicit
+   `overwrite=True`, update the company model, and append to `learnings.md`.
+   Rejected and reverted experiments remain in memory.
+8. **Run `fpa-research-loop`** when the miss warrants multiple autonomous
+   challenger epochs instead of one manually proposed change.
 
 ## Bootstrap (day one)
 
@@ -57,7 +70,8 @@ to report current accuracy and the first round of parametric proposals.
 - No proposal off a single period — require a persistent, same-signed miss.
 - A parametric change must improve **holdout** fitness, not in-sample fit.
 - Cap how far any assumption moves per cycle (`magnitude_cap`).
-- Human ratifies everything; every change is logged and reversible.
+- Human ratifies champion promotion; autonomous failed epochs are logged and reversible.
+- Missing or zero actuals are insufficient evidence, not perfect forecast performance.
 
 ## Next
 

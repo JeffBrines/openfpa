@@ -1,0 +1,68 @@
+schema_version: 1
+sources:
+- source_id: foxf-income-statement
+  kind: public_filing
+  location: data/income_statement.csv
+  entity: Fox Factory Holding Corp.
+  currency: USD
+  periods:
+  - FY2023
+  - FY2024
+  - FY2025
+  - Q1_FY2026
+  extraction_method: pull_edgar.py extracts source-traced SEC filing values into a
+    committed CSV
+  refreshed_at: ''
+  notes: Filing URLs, accessions, and table provenance are in data/SOURCES.md.
+- source_id: foxf-balance-sheet
+  kind: public_filing
+  location: data/balance_sheet.csv
+  entity: Fox Factory Holding Corp.
+  currency: USD
+  periods:
+  - FY2022
+  - FY2023
+  - FY2024
+  - FY2025
+  extraction_method: pull_edgar.py extracts source-traced SEC filing values into a
+    committed CSV
+  refreshed_at: ''
+  notes: Filing URLs, accessions, and table provenance are in data/SOURCES.md.
+- source_id: foxf-cash-flow
+  kind: public_filing
+  location: data/cash_flow.csv
+  entity: Fox Factory Holding Corp.
+  currency: USD
+  periods:
+  - FY2023
+  - FY2024
+  - FY2025
+  extraction_method: pull_edgar.py extracts source-traced SEC filing values into a
+    committed CSV
+  refreshed_at: ''
+  notes: Filing URLs, accessions, and table provenance are in data/SOURCES.md.
+- source_id: foxf-segments
+  kind: public_filing
+  location: data/segments.csv
+  entity: Fox Factory Holding Corp.
+  currency: USD
+  periods:
+  - FY2023
+  - FY2024
+  - FY2025
+  extraction_method: pull_edgar.py extracts source-traced SEC filing values into a
+    committed CSV
+  refreshed_at: ''
+  notes: Filing URLs, accessions, and table provenance are in data/SOURCES.md.
+- source_id: foxf-quarterly
+  kind: public_filing
+  location: data/quarterly.csv
+  entity: Fox Factory Holding Corp.
+  currency: USD
+  periods:
+  - Q1_FY2025
+  - Q1_FY2026
+  extraction_method: pull_edgar.py extracts source-traced SEC filing values into a
+    committed CSV
+  refreshed_at: ''
+  notes: Filing URLs, accessions, and table provenance are in data/SOURCES.md.

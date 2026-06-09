@@ -17,34 +17,70 @@ Before scaffolding any model, learn the business. This produces two artifacts: a
 - You're asked to "build us a model" / "understand our business" before forecasting
 - An existing `.fpa/business-profile.md` is missing or stale
 
+Do not force this workflow when the user asks for a narrow task that can be
+completed without understanding the whole company.
+
 ## Workflow
 
-1. **Interview first; ingest if data exists.** Ingestion is optional — a net-new client may have only an intake call, so never stall waiting for a file that doesn't exist. If financials are available, read them (`pyfpa.read_pl_csv`, or the `pyfpa.io.adapters` for NetSuite/QuickBooks/Shopify). Either way, ask the operator the questions numbers don't answer:
-   - What do you sell, and how do you bill (subscription, wholesale terms, D2C, projects)?
-   - What's the cash cycle — when do you collect, when do you pay?
-   - What's seasonal? What's lumpy (inventory buys, tax, payroll cadence)?
-   - What financing is in place (LOC, term debt, factoring)?
-   - What keeps you up at night?
+1. **Check and initialize the workspace.** Run
+   `openfpa status <company-root>`. If it is uninitialized, run
+   `openfpa init <company-root> --business-name "<name>"`. Then run
+   `openfpa doctor <company-root>`. The CLI emits JSON. If the console script is
+   unavailable in a source checkout, use `python3 -m pyfpa.cli`.
 
-2. **Write the business profile** to `.fpa/business-profile.md` (committed). Capture: entity structure, revenue model + channels, cost drivers, seasonality, working-capital rhythm, financing, and the quirks. This is the contract the rest of the toolkit reads.
+2. **Inspect local evidence first.** Run `openfpa inspect-data <data-root>` for
+   every user-supplied folder, then read the relevant financials, operating
+   files, documentation, and existing model code before asking questions.
+   Record each fact with `openfpa intake-record <company-root>`, including file
+   references and confidence. Never access an external MCP/API system without
+   the user's approval.
 
-3. **Seed from your library.** If a portfolio library exists, start the model from what generalized across your same-type clients: `cfg = pyfpa.seed_from_library(library_path, business_type, cfg)` (priors are seeds — this client's loop refines them). Offer any promoted skills for the type.
+3. **Ask only what remains unknown.** Run
+   `openfpa intake-next <company-root>` and ask that related round of at most
+   three questions. After every response, call `openfpa intake-record` with
+   `--source-type user`. Direct answers are confirmed immediately. Only ask the
+   user to resolve conflicting or low-confidence inferred facts.
 
-4. **Identify gaps the 7 standard skills don't cover**, and propose bespoke skills/agents:
+4. **Repeat short rounds** until `pyfpa.intake_ready(intake)` is true. Do not ask
+   questions already answered by local evidence or earlier conversation.
+
+5. **Propose the company architecture.** Build a `pyfpa.ArchitectureProposal`
+   covering the model objective, connectors, company-specific model components,
+   generated skills, risks, and validation checks. Call
+   `pyfpa.write_onboarding_outputs(intake, workspace, proposal)` to write:
+   - `.fpa/business-profile.md`
+   - `.fpa/decisions/initial-model-architecture.md`
+
+6. **Stop for approval.** Summarize known facts, remaining unknowns, and the
+   proposed architecture. Do not scaffold or generate artifacts until the user
+   approves the proposal.
+
+7. **After approval, seed from the portfolio library.** If one exists, start the
+   model from what generalized across same-type clients. Priors are seeds; this
+   client's learning loop refines them.
+
+8. **Identify gaps the standard skills don't cover**, and propose bespoke skills/agents:
    - Product company with SKUs → a `sku-profitability` skill
    - SaaS → an `arr-waterfall` / cohort-retention skill
    - Logistics/fleet → a `driver-cost-scorecard` skill
 
-5. **Generate them** following `superpowers:writing-skills` discipline, into `skills/generated/` (and `agents/generated/`). Each generated skill MUST cite the profile facts that justify it.
+9. **Generate approved artifacts** using the repository's agent operating contract and local
+   skill format, into `skills/generated/` (and `agents/generated/`). Company
+   models and connectors belong in `models/generated/` and
+   `connectors/generated/`. Each generated artifact MUST cite the profile facts
+   that justify it and include a focused test or reconciliation check.
 
-6. **Apply existing corrections.** Before forecasting, fold in human corrections: `pyfpa.apply_corrections(cfg, pyfpa.load_corrections('.fpa/corrections'))`. Route any `type: structural` corrections through this skill's skill-generation path as *pre-ratified* proposals (the human already authored them — don't wait for backtest misses).
+10. **Apply existing corrections.** Before forecasting, fold in human corrections: `pyfpa.apply_corrections(cfg, pyfpa.load_corrections('.fpa/corrections'))`. Route any `type: structural` corrections through this skill's skill-generation path as *pre-ratified* proposals (the human already authored them — don't wait for backtest misses).
 
 ## Guardrails (self-extending, NOT self-executing)
 
 - Generated artifacts go in `generated/` namespaces in the **client's own repo** — never the public openfpa template.
 - **Human review gate:** propose each new skill/agent with its rationale and WAIT for approval before writing it.
 - No profile fact → no generated skill. Speculation is not a justification.
+- Record material generated changes as `pyfpa.Experiment` files in
+  `.fpa/experiments/`; preserve rejected and reverted experiments.
 
 ## Next
 
-Profile written and approved → **fpa-scaffold-model** to build the runnable model. Consult **fpa-cfo-judgment** throughout.
+After architecture approval, use **fpa-scaffold-model** to build the runnable
+model. Consult **fpa-cfo-judgment** throughout.

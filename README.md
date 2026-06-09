@@ -2,205 +2,468 @@
 
 [![CI](https://github.com/JeffBrines/openfpa/actions/workflows/ci.yml/badge.svg)](https://github.com/JeffBrines/openfpa/actions/workflows/ci.yml)
 
-**openfpa is an open-source FP&A toolkit for finance professionals.** Point an AI coding agent (Claude Code, Claude Cowork, Codex) at your numbers and it builds a working financial model: a 12-month P&L and cash-flow forecast, a 13-week cash runway, and a board-ready briefing.
+**openfpa is an agent-native FP&A workbench.** It gives an AI coding agent a
+tested finance kernel, an operating contract, durable company memory, and a
+research loop for building the FP&A system that fits one company.
 
-Three things set it apart. It **improves over time** against your own actuals. It has a real **memory** of your business. And it's **agnostic about where your numbers come from**. Each is covered below.
+If Codex or Claude Code is the reasoning engine, openfpa is the FP&A toolbelt it
+straps on. The agent still thinks, asks questions, writes code, and makes
+judgments. openfpa gives it the finance-specific tools, memory, checks, and
+working method required to do that work well.
 
-It's also a model you *work with*, alongside the agent, not a static report it hands back. Ask "what if we delay the hire a quarter," challenge an assumption, point out something that's off, and the agent edits the model, re-runs it, and explains what moved. You're pair-modeling, not waiting on a deliverable.
+It is not a fixed FP&A application. It is not a catalog of prebuilt connectors.
+It is not a universal financial model.
 
-Under the hood, `openfpa` is a deliberately **lean Python forecast engine** plus a **progressive Claude skillset** that encodes the methodology and judgment of a real finance team. The engine is small on purpose. It's the substrate an AI extends per business, not an off-the-shelf app you configure by hand.
+The intended workflow is:
 
-> Built by [Guiderail](https://guiderail.example). Open-source under MIT. The demo runs on synthetic data, no credentials required. A second worked example validates the engine against a **real public company** (Fox Factory, NASDAQ: FOXF) straight from its SEC filings.
+1. Open a company workspace with an AI coding agent such as Codex or Claude Code.
+2. Let the agent inspect the files already available.
+3. Answer a short set of unresolved business and data questions.
+4. Review the proposed model and data architecture.
+5. Let the agent build the company-specific models, mappings, connectors, skills,
+   and reports.
+6. Score forecasts against actual outcomes and iterate toward a better result.
 
----
+The company workspace is the product. The Python package is the stable kernel
+inside it. The human points the agent toward the relevant data and business
+context. The agent uses the toolbelt to learn the company, ask the right
+questions, build the right FP&A system, and improve it as actual outcomes arrive.
 
-## Mission
+## Why this exists
 
-Bring real FP&A to anyone with a spreadsheet, without the cost or the implementation project of Datarails, Cube, or Vena.
+Traditional FP&A software asks a company to configure itself inside a fixed
+application. openfpa takes the opposite approach. It gives an AI enough finance
+structure, memory, and guardrails to learn the business and build what that CFO
+or FP&A team actually needs.
 
-Those tools hand you connectors and a modeling layer, then leave the thinking to you. openfpa flips that: **connect your data, or just point it at your spreadsheets, and let the AI do the thinking.** It asks the questions a good CFO would, builds the model, and surfaces what matters. The methodology underneath is distilled from hundreds of hours of production CFO work (a trucking fleet, a bicycle company, and more), not textbook finance.
+A generic AI can write a forecast from scratch, but each run tends to produce a
+new pile of code with no shared accounting logic, durable context, test history,
+or promotion process. openfpa adds:
 
-Self-hosted, auditable, yours. What it learns lives as plain files in your repo, not someone else's cloud. This is an open-source experiment from [Guiderail](https://guiderail.example), and we'd love your help making it the FP&A tool we all wish existed.
+- **A tested finance kernel.** Revenue, COGS, operating expenses, working
+  capital, debt, tax, cash flow, reconciliation, and reporting primitives live
+  in `pyfpa`.
+- **An agent operating contract.** `AGENTS.md`, `CLAUDE.md`, and the skills in
+  `skills/` define how the agent should inspect evidence, ask questions, make
+  changes, and validate its work.
+- **Durable company memory.** Business facts, sources, mappings, corrections,
+  forecasts, experiments, decisions, and model history live in `.fpa/`.
+- **Evidence-gated iteration.** Champion and challenger models are evaluated on
+  held-out actuals and accounting checks. Weak challengers are retained as
+  failed research. Promotion requires human approval.
+- **Visible adaptation.** Company-specific code belongs in generated namespaces,
+  where it can be reviewed, tested, and changed.
 
----
+The goal is not deterministic software that produces the same template for
+every company. The goal is a dependable process that helps the AI produce a
+better company-specific result over time.
 
-## Why not just point Claude at your books?
+## How onboarding works
 
-Fair question. Claude *can* write financial code from scratch. But every run is a one-off: ad-hoc pandas, no shared structure, no test, no audit trail. Correctness by luck of the run. openfpa makes correctness a property of the **system**, not of any single chat:
+For broad company work, the agent starts by inspecting local evidence. It does
+not begin with a long generic questionnaire.
 
-- **A tested accounting substrate.** The plumbing (revenue, COGS, opex, working capital, debt, cash flow) is written once and CI-verified to reconcile against a real, audited 10-K, to the dollar ([Fox Factory](#proof-on-a-real-public-company-fox-factory-foxf), below). During this very build the engine caught a subtle bug, where depreciation was quietly inflating operating cash flow. It got fixed once, and a test now guarantees it stays fixed. A from-scratch agent reproduces that kind of error on every run, and the wrong number looks right.
-- **Encoded CFO judgment.** Reconcile to the dollar, then bridge the one-offs. "Segment Adjusted EBITDA isn't gross profit under ASU 2023-07." A goodwill impairment gets *bridged*, not forced through the model. The reflexes a senior finance person has and a generic agent doesn't.
-- **Reproducible and auditable.** Config-driven, every figure source-traced to a filing, re-runnable. Not a chat transcript you can't reproduce.
-- **Self-extension with guardrails.** The agent re-tools a *known, tested* structure per business (it generated a bespoke `segment-rollup` skill for Fox's segments) instead of emitting throwaway scripts. Template-grade rigor and bespoke-grade fit.
+It records what it can establish, including sources and confidence, then asks
+only unresolved questions in short rounds. Typical questions cover:
 
-The short version: bare Claude is a capable analyst with a blank spreadsheet. openfpa adds the tested model engine, the encoded methodology, and a review checklist. Rails to drive on, and gauges that catch the mistakes.
+- business model, products, customers, segments, and revenue drivers;
+- seasonality, pricing, unit economics, and major operating constraints;
+- legal entities, reporting periods, currencies, and consolidation needs;
+- debt, liquidity, capital spending, and working-capital behavior;
+- the decisions the CFO needs the model to support;
+- available systems, exports, folders, and credentials.
 
----
+The first durable outputs are:
 
-## It improves over time
+- `.fpa/intake.md`;
+- `.fpa/business-profile.md`;
+- `.fpa/decisions/initial-model-architecture.md`.
 
-openfpa is designed to get better the more you use it. The idea is borrowed from [Karpathy's AutoResearch](https://github.com/karpathy/autoresearch), which self-improves a model by iterating against a cheap, objective fitness metric: it edits the training code, keeps the changes that lower validation loss, and repeats. openfpa applies the same idea to FP&A, where the fitness metric is **reconciliation error against your own actuals**. Two loops run on that metric, and you ratify every change:
+The agent waits for approval before generating a model or accessing an external
+system. Narrow requests do not force a full company interview.
 
-- **Per client (Loop A).** Every close, it scores its last forecast against your actuals and proposes adjustments that improve the backtest, for you to accept or reject. Over time the model gets better at *this* business.
-- **Across your book (Loop B).** For a fractional CFO with many clients, it looks for assumptions that *generalize*, validated by leave-one-out cross-client backtesting (a pattern has to hold up on the clients it was not learned from). With your sign-off, it saves them to a reusable library that seeds the next client.
+## Data access is agent-built
 
-Nothing phones home, and every proposed change is yours to approve or reject. This is distinct from memory below: improvement is the *process* of getting better against a metric; memory is the durable *state* the process reads from and writes to.
+openfpa does not aim to maintain a conventional connector marketplace. The AI
+should help the user reach the data that already exists, then build the smallest
+reliable ingestion path for that company.
 
----
+The agent should first ask where the relevant evidence lives:
 
-## It remembers
+- QuickBooks, Xero, NetSuite, or another accounting system;
+- local CSV, Excel, or Google Sheets files;
+- a shared folder containing monthly financial packages;
+- P&L and balance-sheet exports;
+- AR and AP aging reports;
+- inventory balances, item detail, or purchasing data;
+- payroll, CRM, billing, bank, or operational systems;
+- public filings when the company is public.
 
-The model is not reset every chat. What it learns about a business persists as plain files in that client's repo, which you can read, edit, and audit:
+It should then choose an access path:
 
-- `business-profile.md`: what the system knows about the business (segments, channels, seasonality, financing, the quirks).
-- `corrections/`: the fixes you make by hand, typed and durable, so a correction you make once grounds every forecast after it.
-- `forecasts/` and `scorecard.md`: each past forecast and how it actually scored against the close.
-- `learnings.md`: the model changes you've accepted, with their evidence.
-- a portfolio library: the patterns that generalized across your clients.
+1. Read local files already supplied by the user.
+2. Use an existing host tool, MCP server, or authenticated command if available.
+3. Ask the user to export a report when that is the safest and fastest path.
+4. Build a company-specific API or file connector when recurring access matters.
 
-It's an Obsidian-friendly vault (plain markdown and YAML with a `MEMORY.md` index), but it never requires Obsidian. The point is that context accumulates and stays yours, rather than living in a chat history you can't reproduce or a vendor's cloud.
+Generated connector code belongs in `connectors/generated/`. It should include:
 
----
+- the expected source and authentication method;
+- a fixture or redacted sample;
+- explicit field and account mappings;
+- source totals and reconciliation checks;
+- failure behavior for missing, duplicate, or unmapped records;
+- tests that do not require production credentials.
 
-## Bring your numbers, any way you have them
+The small functions in `pyfpa.io.adapters` are fixture-backed examples, not live
+QuickBooks, NetSuite, or Shopify integrations. Credentials stay with the host
+tool or environment and are never committed.
 
-openfpa is not married to a connector. Everything it ingests normalizes to one shape, `{account: amount}`, so the engine never cares where the numbers came from. And where no built-in path exists, the AI writes the ingestion. The Fox example's [`pull_edgar.py`](examples/foxfactory/pull_edgar.py) is exactly that: a SEC-EDGAR adapter the agent built from scratch.
+## The company workspace
 
-So you connect however your numbers actually live:
+```text
+company/
+|-- .fpa/
+|   |-- MEMORY.md
+|   |-- intake.md
+|   |-- business-profile.md
+|   |-- sources/
+|   |-- mappings/
+|   |-- corrections/
+|   |-- forecasts/
+|   |-- experiments/
+|   |-- decisions/
+|   |-- models/
+|   `-- research/
+|-- connectors/generated/
+|-- models/generated/
+|-- skills/generated/
+`-- agents/generated/
+```
 
-- **Public filings:** a 10-K or 10-Q (the Fox Factory example).
-- **Your accounting system, live:** QuickBooks or NetSuite, via their **MCP servers** (the MCP server owns the auth, so openfpa never touches your credentials) or their APIs.
-- **D2C ops:** Shopify.
-- **Or just the spreadsheets on your laptop:** P&L, balance sheet, AR/AP aging, inventory. CSV or Excel in, model out. (`read_pl_csv` reads any `Account, Amount` export; richer tables like aged AR or item-level inventory get parsed to what the model needs, such as DSO, DIO, and DPO.)
+Canonical memory remains readable Markdown and YAML. A rebuildable local index
+supports task-specific retrieval, but the index is not the source of truth.
 
-No data team, no implementation project, no "is my connector supported?" The agent meets your data where it is and builds the bridge. That is the whole point of a substrate an AI extends per business.
+Memory and learning are different:
 
----
+- **Memory** preserves what the system knows, where it learned it, and what
+  humans corrected or approved.
+- **Learning** evaluates model changes against actual outcomes and retains the
+  evidence from accepted and rejected experiments.
 
-## See it in 30 seconds
+See [`docs/agent-native-workspace.md`](docs/agent-native-workspace.md) for the
+workspace and mutation contract.
+
+## The research loop
+
+The iteration model is inspired by
+[Karpathy's AutoResearch](https://github.com/karpathy/autoresearch): define an
+objective, run bounded experiments, keep measurable improvements, and preserve
+failed attempts so they are not repeated without new evidence.
+
+For FP&A, the objective is not simple in-sample reconciliation. A candidate
+should improve forecast performance on held-out actuals while passing hard
+checks such as:
+
+- source reconciliation;
+- accounting identities;
+- segment or entity rollups;
+- working-capital continuity;
+- fit and holdout separation;
+- scenario coherence.
+
+The AI may generate, evaluate, and discard challengers after the initial
+architecture is approved. A promotion-eligible challenger is presented to the
+human with its metrics, tradeoffs, complexity cost, and evidence. The active
+champion changes only after explicit approval.
+
+## Agent toolbelt CLI
+
+The `openfpa` command is a machine-oriented control surface for Codex, Claude
+Code, and other capable coding agents. It emits JSON, performs deterministic
+workspace operations, and leaves reasoning and conversation to the host agent.
+
+The initial command set is:
+
+```text
+openfpa init
+openfpa inspect-data
+openfpa status
+openfpa source-profile
+openfpa source-register
+openfpa source-list
+openfpa mapping-register
+openfpa mapping-list
+openfpa reconcile-source
+openfpa connector-scaffold
+openfpa connector-list
+openfpa connector-validate
+openfpa intake-next
+openfpa intake-record
+openfpa doctor
+openfpa entrypoint-list
+openfpa entrypoint-register
+```
+
+The CLI can:
+
+- initialize and validate the workspace;
+- inventory local files and likely financial artifacts;
+- profile CSV, TSV, and Excel tables without changing them;
+- register source provenance, coverage, entities, and currencies;
+- persist exact source-to-model mappings and deliberate ignores;
+- reconcile account-amount CSV files while surfacing duplicates and unmapped values;
+- scaffold company connector bundles from redacted fixtures;
+- execute fixture-mode connector contracts and compare golden mapped totals;
+- show unresolved intake questions;
+- expose source, mapping, model, and research status;
+- run deterministic checks and reports;
+- provide structured context for the AI to continue the work;
+- support non-interactive automation where the operation is deterministic.
+
+The AI should still decide what questions matter, what data path to use, what
+model fits the business, and what experiment to run next.
+
+All commands return a versioned JSON envelope. Exit code `0` means success, `1`
+means the requested operation or a diagnostic check failed, and `2` means the
+command arguments were invalid.
+
+`intake-record` writes one sourced fact to `.fpa/intake.md`. Generated company
+workflows are published in `.fpa/models/entrypoints.yaml` with
+`entrypoint-register`. The registry lets an agent discover the tested command,
+working directory, inputs, and outputs. Registration does not execute the
+command.
 
 ```bash
-pip install -e .          # from a clone, or `pip install openfpa` once published
-python examples/ridgeline/run_demo.py
+openfpa source-register . \
+  --source-id monthly-pl \
+  --kind local_file \
+  --location data/monthly-pl.csv \
+  --entity "Acme Inc." \
+  --currency USD \
+  --period 2026-05 \
+  --extraction-method "Controller export from the accounting system"
+
+openfpa mapping-register . \
+  --source-id monthly-pl \
+  --source-value "Product Revenue" \
+  --target income_statement.product_revenue
+
+openfpa reconcile-source . \
+  --source-id monthly-pl \
+  --account-column Account \
+  --amount-column Amount
+
+openfpa connector-scaffold . \
+  --name accounting-pl \
+  --source-id monthly-pl \
+  --description "Pull and normalize the monthly P&L" \
+  --auth-method host_environment \
+  --fixture fixtures/redacted-monthly-pl.csv
+
+openfpa connector-validate . --name accounting-pl
+
+openfpa intake-record . \
+  --key business_model \
+  --answer "Commercial coffee roasting" \
+  --source-type user
+
+openfpa entrypoint-register . \
+  --name forecast \
+  --kind forecast \
+  --description "Run the approved monthly forecast" \
+  --command-json '["python3", "models/generated/run_forecast.py"]' \
+  --input data/actuals.csv \
+  --output output/forecast.xlsx
 ```
 
-That runs the full pipeline on a synthetic premium D2C brand (**Ridgeline Chair Co.**) and writes a CFO briefing. Here's the headline it produces:
+`connector-scaffold` creates:
 
-> The distribution is **`openfpa`**; the importable package is **`pyfpa`** (`import pyfpa`).
-
-```markdown
-# Ridgeline Chair Co.
-
-## Headline
-- **Revenue:** $6,000,000
-- **EBITDA:** $824,000
-- **Net income:** $572,651
-- **Ending cash:** $720,418
-
-## 13-Week Cash Runway
-- **Trough:** -$146,000 (week 7)
-- **First negative week:** week 3
+```text
+connectors/generated/accounting-pl/
+|-- connector.yaml
+|-- connector.py
+|-- run.py
+|-- README.md
+`-- fixtures/source.csv
 ```
 
-The story the model tells: a seasonal inventory business that **goes cash-negative in week 3**, as the spring inventory build lands before sell-through collects, troughs at **-$146K**, then recovers. In other words, "you need a roughly $150,000 to $200,000 credit line to bridge the build." That's the kind of insight this toolkit is built to surface automatically.
+The scaffold requires a registered source, complete mappings, and a redacted
+CSV fixture with no duplicate or unmapped accounts. It stores golden mapped
+totals in `connector.yaml`. `connector-validate` runs fixture mode only,
+normalizes the output to `Account,Amount`, and reconciles it against those
+totals. It does not contact a live system.
 
-The full briefing (with the month-by-month table) is committed at [`docs/demo/briefing.md`](docs/demo/briefing.md).
+The generated `extract_live()` function intentionally fails until the agent
+implements host-authenticated access. After the live path has its own
+fixture-backed tests and safe failure behavior, register the recurring command
+with `entrypoint-register --kind connector`.
 
----
+## Current quick start
 
-## Proof on a real public company: Fox Factory (FOXF)
-
-Ridgeline is synthetic. To show the engine on *real, messy, audited* numbers, [`examples/foxfactory/`](examples/foxfactory/) runs the whole toolkit against **Fox Factory Holding Corp.**, pulled live from SEC EDGAR (every figure traces to a filing in [`data/SOURCES.md`](examples/foxfactory/data/SOURCES.md)):
+Clone the repository and install it into a Python 3.11 or newer environment:
 
 ```bash
-python examples/foxfactory/pull_edgar.py   # refresh actuals from SEC EDGAR
-python examples/foxfactory/run_foxf.py     # reconcile + forecast + divestiture
+git clone https://github.com/JeffBrines/openfpa
+cd openfpa
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
 ```
 
-- **Phase A, reconciliation.** Driven with Fox's actual segment net sales, COGS, working-capital days, depreciation and capex, the engine reproduces reported **revenue, gross profit, Adjusted EBITDA, and the working-capital cash mechanic to the dollar** for FY2024 and FY2025. The $557M FY2025 goodwill impairment and discrete tax benefits are shown as an explicit bridge, because the lean engine models the operating business, not one-time non-cash charges.
-- **Phase B, forecast.** A segment-level forecast (PVG, AAG, and SSG rolled up to consolidated) for FY2026 and FY2027, anchored to the reported Q1 FY2026 print.
-- **Phase C, capital allocation.** A labeled sensitivity: what selling **Marucci** does to free cash flow and leverage across sale timings and proceeds.
+Then open the repository in Codex or Claude Code and ask:
 
-It self-extends, too. Fox reports segment **Adjusted EBITDA** (ASU 2023-07), not segment gross profit, so the `fpa-learn-business` phase generates a bespoke [`segment-rollup`](examples/foxfactory/skills/generated/segment-rollup/SKILL.md) skill to fit. That is exactly the per-business re-tooling the skillset is built for.
-
-**This reconciliation runs in CI.** Every push, on Python 3.11, 3.12, and 3.13, verifies the engine still ties to Fox's reported FY2024 and FY2025 numbers. It's not a marketing claim you take on faith. It's a test that goes red the moment it stops being true.
-
----
-
-## What it does
-
-```
-config (YAML)  ─▶  revenue ─▶ cogs ─▶ opex ─▶ working capital ─▶ debt ─▶ cashflow
-                                                                            │
-   spreadsheets (P&L/BS/AR/AP/inventory) ─▶ (ingestion)                     ▼
-   QuickBooks·NetSuite (MCP/API) · 10-K · Shopify ─▶ (adapters)  12-month P&L + cash flow
-                                                                            │
-   scheduled weekly flows ─▶ 13-week direct-method cash ─▶ runway           ▼
-                                                              board-ready briefing (md / xlsx)
+```text
+Help me onboard this company into openfpa.
+The financial files are in ./company-data.
+Inspect them first, then ask me only what you cannot determine.
 ```
 
-- **Monthly forecast engine:** config-driven (`EntityConfig`) with revenue seasonality and growth, channel-level COGS, fixed and variable OpEx, AR/AP/inventory working capital, multi-instrument debt, and an indirect-method cash flow with NOL-aware tax.
-- **13-week cash forecast:** schedule-driven direct method (`Cash13Config`) with per-week receipts and disbursements, a raw cash position (no auto-draws, so the liquidity gap stays visible), and a runway summary (`min_cash`, `min_week`, `first_negative_week`).
-- **IO layer:** `read_pl_csv` reads any `Account, Amount` statement export (P&L, balance sheet, and so on) into `{account: amount}`; render a markdown CFO briefing; export to Excel.
-- **Data-source adapters:** `from_netsuite`, `from_quickbooks`, and `from_shopify` return a normalized `{account: amount}` (fixture-backed scaffolds, each documenting its live path). The toolkit is not limited to these. Connect QuickBooks or NetSuite via MCP, pull a 10-K, or point it at local spreadsheets, and the agent builds the ingestion for that source (see [`pull_edgar.py`](examples/foxfactory/pull_edgar.py)). Credentials come from the host or MCP server, never committed.
+The repository instructions tell the agent to initialize `.fpa/`, inspect local
+evidence, conduct the intake, and stop for architecture approval.
 
-## Use it as a library
+## Runnable examples
+
+### Ridgeline Chair Co.
+
+[`examples/ridgeline/`](examples/ridgeline/) is a synthetic product-company
+example with a monthly forecast, a 13-week cash forecast, and reporting output.
+
+```bash
+python3 examples/ridgeline/run_demo.py
+```
+
+The example shows an inventory build creating a near-term liquidity gap before
+seasonal collections arrive.
+
+### Fox Factory
+
+[`examples/foxfactory/`](examples/foxfactory/) applies the workflow to public,
+source-traced SEC data for Fox Factory Holding Corp.
+
+```bash
+python3 examples/foxfactory/run_foxf.py
+```
+
+The example has four distinct phases:
+
+1. **Actual-driver reproduction.** The engine reproduces known accounting
+   mechanics using reported drivers. This validates arithmetic, not forecast
+   skill.
+2. **Historical holdout research.** A FY2025 holdout rejects an aggressive
+   recovery challenger and proposes a better revenue-recovery and slow-margin
+   challenger.
+3. **Forward forecast.** A FY2026-FY2027 segment forecast is anchored to the
+   reported Q1 FY2026 result.
+4. **Capital allocation sensitivity.** A labeled Marucci divestiture scenario
+   shows the tradeoff between free cash flow and leverage.
+
+The full proof runs in CI across Python 3.11, 3.12, and 3.13. See
+[`examples/foxfactory/README.md`](examples/foxfactory/README.md) for the
+methodology and limitations.
+
+## Python kernel
+
+The importable package is `pyfpa`. The distribution name is `openfpa`.
 
 ```python
 import pyfpa
 
-cfg = pyfpa.load_config("examples/ridgeline/config.yaml")
-monthly = pyfpa.cashflow_from_config(cfg)            # 12-month P&L + cash flow
+config = pyfpa.load_config("examples/ridgeline/config.yaml")
+monthly = pyfpa.cashflow_from_config(config)
 
-from pyfpa.io.loaders import load_cash13_config
-weekly = pyfpa.cash13_forecast(load_cash13_config("examples/ridgeline/cash13.yaml"))
-runway = pyfpa.runway_summary(weekly)                # {'min_cash': -146000.0, 'min_week': 7, ...}
+cash_config = pyfpa.load_cash13_config("examples/ridgeline/cash13.yaml")
+weekly = pyfpa.cash13_forecast(cash_config)
+runway = pyfpa.runway_summary(weekly)
 
-from pyfpa.io.reporting import to_briefing_md
-print(to_briefing_md(monthly, title="My Company", runway=runway))
+print(pyfpa.to_briefing_md(monthly, title="My Company", runway=runway))
 ```
 
-## Design principles
+The base kernel includes:
 
-- **Lean by intent.** Small, pure `*_from_config` functions, immutable pandas, pydantic-validated config, and disk I/O confined to the `io/` layer. The engine is meant to be read and extended by an AI, so it stays small and conventional.
-- **Config is the source of truth.** Every number lives in YAML.
-- **Honest cash.** The 13-week forecast shows the raw, unfinanced position. It never hides a shortfall behind an automatic credit-line draw.
-- **Zero real *client* data.** The demo company is fictional and the adapters ship with synthetic fixtures. The one real-data example (Fox Factory) uses only public SEC filings, fetched on demand and fully source-traced.
+- monthly P&L and indirect cash-flow modeling;
+- 13-week direct-method cash forecasting;
+- revenue, COGS, operating-expense, debt, tax, and working-capital primitives;
+- reconciliation, segment, SKU, and divestiture analysis helpers;
+- CSV ingestion and Markdown or Excel reporting;
+- forecast snapshots, scoring, and holdout backtests;
+- workspace, intake, correction, experiment, retrieval, and research records;
+- experimental cross-company prior and skill mining.
 
-## Project status & roadmap
+`EntityConfig` is a useful starting model, not a required ontology. A company
+with cohorts, projects, contracts, fleets, stores, or complex inventory may need
+a different generated model.
+
+## Skills
+
+The repository includes skills for:
+
+- learning the business;
+- scaffolding an initial model;
+- configuring actuals and data access;
+- running monthly close and cash runway analysis;
+- producing board briefings;
+- capturing human corrections;
+- applying CFO judgment;
+- running company research epochs;
+- learning cautiously across a portfolio.
+
+The skills are repo-native instructions for capable coding agents. The
+`.claude-plugin/` manifest also supports Claude plugin installation, but the
+underlying workflow is not intended to be Claude-only.
+
+## Project status
 
 | Component | Status |
 |---|---|
-| Monthly forecast engine (`pyfpa`) | Built |
-| 13-week cash engine (`pyfpa.cash13`) | Built |
-| IO layer + data-source adapters (`pyfpa.io`) | Built |
-| Runnable demo (`examples/ridgeline`) | Built |
-| Real public-company proof (`examples/foxfactory`) | Built |
-| Claude skillset (see below) | Built |
-| Self-improving backtest loop (`pyfpa.backtest` + `fpa-backtest-learn`) | Built |
-| Human corrections + vault memory (`pyfpa.memory` + `fpa-capture-correction`) | Built |
-| Cross-client portfolio learning (`pyfpa.portfolio` + `fpa-portfolio-learn`) | Built |
+| Finance kernel and reporting | Built |
+| 13-week cash model | Built |
+| Agent onboarding contract | Built |
+| Durable `.fpa` workspace | Built |
+| Active memory retrieval | Built |
+| Champion and challenger research records | Built |
+| Human-gated model promotion | Built |
+| Generated workflow registry | Built |
+| Generated connector contracts and fixture validation | Built |
+| Synthetic Ridgeline example | Built |
+| Public-data Fox Factory example | Built |
+| Fixture-backed adapter examples | Built |
+| Live company-specific connectors | Generated per company |
+| Cross-company portfolio learning | Experimental |
+| Machine-oriented agent CLI | Built |
 
-The forecast engine is the substrate; the skillset is where the work is. It's a progressive Claude skillset (in [`skills/`](skills/), installable as a Claude plugin) that drives the engine across the lifecycle:
+## Design principles
 
-1. **`fpa-learn-business`:** an interview plus financials become a durable business profile, and it generates bespoke skills and agents for that company (the self-extending part).
-2. **`fpa-scaffold-model`:** build a runnable model from a trial balance.
-3. **`fpa-configure-actuals`:** wire in real numbers from wherever they live (local spreadsheets, QuickBooks or NetSuite via MCP or API, a 10-K, and so on).
-4. **Operate:** `fpa-monthly-close`, `fpa-cash-runway`, `fpa-board-briefing`, plus `fpa-backtest-learn` (scores past forecasts against your actuals and proposes ratified improvements, the per-client loop), `fpa-capture-correction` (turns a human's "that's off because X" into durable memory that grounds future forecasts), and `fpa-portfolio-learn` (distills what generalizes across your book into a reusable library that seeds new clients). All of it is guided by `fpa-cfo-judgment`, the encoded gotchas a real finance team knows: pre-close margins lie; depreciation is a real expense, not a cash-flow freebie; a goodwill impairment is non-cash, so bridge it; raw cash is not insolvency.
-
-See [`docs/blog/launch.md`](docs/blog/launch.md) for the story: a cold AI agent building a coffee-roaster forecast from a 10-minute intake and writing its own bespoke skill, and the same toolkit reconciling Fox Factory's real 10-K to the dollar.
+- **Stable kernel, adaptive company.** Shared accounting and persistence
+  contracts stay dependable. Company-specific models and connectors can change.
+- **Inspect before asking.** Use supplied evidence before interrupting the user.
+- **No hidden reconciliation gaps.** Missing, duplicate, conflicting, and
+  unmapped data should fail visibly.
+- **No evidence, no promotion.** A model change needs a hypothesis, source
+  evidence, holdout result, and passing checks.
+- **Human control at consequential boundaries.** External access, architecture
+  approval, and champion promotion require explicit approval.
+- **Complexity has a cost.** Prefer the smallest model that answers the CFO's
+  decision and clears the objective.
+- **Plain files remain authoritative.** Memory, evidence, and decisions should be
+  readable without a proprietary service.
 
 ## Development
 
 ```bash
-pip install -e ".[dev]"
-pytest -q          # the full test suite
+python3 -m pip install -e ".[dev]"
+python3 -m pytest -q
 ```
 
 ## Contributing
 
-It's early and help is welcome: bug reports, a sharper piece of CFO judgment, a new data-source ingestion, or a whole industry pack. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup, the workflow, and what's most useful to work on.
+Useful contributions include stronger finance primitives, source-ingestion
+recipes, industry-specific skills, reconciliation checks, research objectives,
+and additional public-company proofs. Never commit real client data or
+credentials.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the development workflow.
 
 ## License
 
-MIT. See [LICENSE](LICENSE). Built and maintained by **Guiderail**.
+MIT. See [`LICENSE`](LICENSE). Built and maintained by Guiderail.

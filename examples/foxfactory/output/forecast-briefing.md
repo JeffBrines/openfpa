@@ -1,4 +1,4 @@
-# Phase B — FY2026-FY2027 segment-level forecast
+# Phase C — FY2026-FY2027 segment-level forecast
 
 Base = FY2025 actuals. FY2026 net-sales growth is anchored to the reported
 Q1 FY2026 print ($368.7M vs Q1 FY2025 $355.0M = **+3.8% YoY**;
@@ -13,8 +13,8 @@ off FY2025.
 | Gross profit | $459.4M | $480.7M |
 | Adjusted EBITDA | $236.7M | $250.3M |
 | Net income | $84.1M | $100.9M |
-| Operating cash flow | $156.2M | $151.5M |
-| Free cash flow | $114.2M | $109.5M |
+| Operating cash flow | $156.2M | $167.4M |
+| Free cash flow | $114.2M | $125.4M |
 
 ## Segment net sales & Adjusted EBITDA
 

@@ -67,11 +67,13 @@ def score_forecast(
     weights = dict(weights or DEFAULT_WEIGHTS)
     lines = [line for line in weights if line in predicted and line in actual and actual[line] != 0]
     if not lines:
-        return ScoreResult(fitness=0.0, per_line={}, weights={})
+        raise ValueError("no scorable lines: provide matching, non-zero actuals")
     rec = reconcile({line: predicted[line] for line in lines},
                     {line: actual[line] for line in lines})
     per_line = {line: float(rec.loc[line, "variance_pct"]) for line in lines}
     total_w = sum(weights[line] for line in lines)
+    if total_w <= 0:
+        raise ValueError("scoring weights must sum to a positive value")
     used = {line: weights[line] / total_w for line in lines}
     fitness = sum(used[line] * abs(per_line[line]) for line in lines)
     return ScoreResult(fitness=fitness, per_line=per_line, weights=used)

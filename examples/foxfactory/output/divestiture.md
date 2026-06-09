@@ -1,4 +1,4 @@
-# Phase C — Marucci divestiture sensitivity
+# Phase D — Marucci divestiture sensitivity
 
 **Most assumption-heavy part of the exercise — a labeled sensitivity.**
 Marucci sits inside SSG and is not reported standalone. Estimates are anchored
@@ -12,11 +12,11 @@ proceeds are excluded from FCF; they reduce net debt for the leverage line.
 
 | Scenario | 2-yr Free Cash Flow | Net debt / EBITDA |
 |---|--:|--:|
-| Hold Marucci | $223.7M | 2.09x |
-| Sell at 6mo | $164.3M | 1.27x |
-| Sell at 12mo | $184.1M | 1.27x |
-| Sell at 18mo | $203.9M | 1.05x |
-| Sell at 24mo | $223.7M | 0.89x |
+| Hold Marucci | $239.6M | 2.09x |
+| Sell at 6mo | $180.2M | 1.27x |
+| Sell at 12mo | $200.0M | 1.27x |
+| Sell at 18mo | $219.8M | 1.05x |
+| Sell at 24mo | $239.6M | 0.89x |
 
 Selling Marucci *lowers* 2-year FCF (you give up its cash generation) but also
 *lowers leverage* (proceeds retire debt). The later the sale, the more Marucci
@@ -29,10 +29,10 @@ Marucci EBITDA (~$75.0M). More proceeds retire more debt.
 
 | Sale price | Proceeds | 2-yr Free Cash Flow | Net debt / EBITDA |
 |---|--:|--:|--:|
-| At cost (~$567M paid) | $567.2M | $200.8M | net cash |
-| Default markdown | $300.0M | $184.1M | 1.27x |
-| 8x EBITDA | $600.0M | $202.8M | net cash |
-| 12x EBITDA | $900.0M | $221.6M | net cash |
+| At cost (~$567M paid) | $567.2M | $216.7M | net cash |
+| Default markdown | $300.0M | $200.0M | 1.27x |
+| 8x EBITDA | $600.0M | $218.7M | net cash |
+| 12x EBITDA | $900.0M | $237.4M | net cash |
 
 Whether the deleveraging is worth the lost FCF — and at what price — is the
 capital-allocation question this sensitivity frames.

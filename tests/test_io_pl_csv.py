@@ -37,3 +37,11 @@ def test_read_ridgeline_sample():
     result = read_pl_csv(REPO_ROOT / "examples/ridgeline/quickbooks_pl_sample.csv")
     assert result["Product Revenue"] == 6_000_000.0
     assert result["Cost of Goods Sold"] == -2_940_000.0
+
+
+def test_duplicate_accounts_raise(tmp_path):
+    path = tmp_path / "duplicate.csv"
+    path.write_text("Account,Amount\nRevenue,100\nRevenue,200\n")
+
+    with pytest.raises(ValueError, match="duplicate account"):
+        read_pl_csv(path)

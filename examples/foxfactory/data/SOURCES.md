@@ -23,7 +23,7 @@ FY2025 10-K segment footnote: https://www.sec.gov/Archives/edgar/data/1424929/00
 (Fox reports segment **Adjusted EBITDA** under ASU 2023-07 — not segment gross
 profit or operating income. The table carries FY2023-FY2025.)
 
-## Marucci acquisition anchor (Phase C divestiture)
+## Marucci acquisition anchor (Phase D divestiture)
 
 FY2023 10-K acquisitions footnote: https://www.sec.gov/Archives/edgar/data/1424929/000142492924000006/R97.htm
 - Acquired 2023-11-14; total consideration **$567,194K** (cash $567,092K).

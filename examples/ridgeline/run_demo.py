@@ -1,19 +1,23 @@
 """Run the full pyfpa pipeline on the synthetic Ridgeline Chair Co. demo.
 
 Usage:
-    python examples/ridgeline/run_demo.py
+    python3 examples/ridgeline/run_demo.py
 Writes a markdown CFO briefing and an Excel forecast into docs/demo/.
 """
 from __future__ import annotations
 
+import sys
 from pathlib import Path
+
+_HERE = Path(__file__).resolve().parent
+_REPO_ROOT = _HERE.parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 import pyfpa
 from pyfpa.io.loaders import load_cash13_config
 from pyfpa.io.reporting import forecast_to_excel, to_briefing_md
 
-_HERE = Path(__file__).resolve().parent
-_REPO_ROOT = _HERE.parents[1]
 _TITLE = "Ridgeline Chair Co."
 
 

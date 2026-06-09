@@ -33,13 +33,15 @@ real businesses. The highest-leverage contributions:
   well yet (SaaS, restaurant, logistics, agency, and so on). The `fpa-learn-business` skill
   spins these up per business; a generalized, well-documented one helps everyone. See the
   `segment-rollup` skill in the Fox Factory example for the shape.
-- **Data-source ingestions:** a new way to get numbers in (a QuickBooks or NetSuite MCP
-  recipe, a Stripe or bank export, anything) that lands on the normalized account-to-amount
-  shape. See `examples/foxfactory/pull_edgar.py` for the pattern.
+- **Data-access recipes:** teach the agent how to identify, request, map, test,
+  and reconcile a source such as QuickBooks, Xero, NetSuite, Stripe, a bank
+  export, or a local reporting folder. Reusable primitives are welcome, but live
+  company connectors should remain generated for that company. See
+  `examples/foxfactory/pull_edgar.py` for the pattern.
 - **CFO-judgment rules:** a real-world gotcha worth encoding into `fpa-cfo-judgment`.
-- **Reconciliation proofs:** prove the engine on another real public company the way the
-  Fox Factory example does, with a `pull_edgar.py`-style source pull plus a to-the-dollar
-  reconciliation test.
+- **Public-company proofs:** apply the workflow to another source-traced public
+  company with honest accounting reproduction, a historical holdout, and clear
+  forecast limitations.
 
 ## House rules
 

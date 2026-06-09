@@ -63,7 +63,7 @@ scheduled amortization. Deleveraging is a stated priority post-Marucci.
 1. Restoring AAG/powersports margins to mid-cycle.
 2. Deleveraging the Marucci debt while demand is soft.
 3. Whether SSG (bikes + Marucci) is the right portfolio — the capital-allocation
-   question the Phase C divestiture sensitivity frames.
+   question the Phase D divestiture sensitivity frames.
 
 ## Gaps the standard skills don't cover → bespoke skills generated
 

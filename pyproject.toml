@@ -1,7 +1,7 @@
 [project]
 name = "openfpa"
 version = "0.1.0"
-description = "AI-native FP&A toolkit: a lean, config-driven forecast engine (P&L, 13-week cash, briefings) and a progressive Claude skillset."
+description = "Agent-native FP&A toolbelt with a tested finance kernel, durable company memory, and evidence-gated research."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -27,6 +27,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "build>=1.2"]
+
+[project.scripts]
+openfpa = "pyfpa.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/JeffBrines/openfpa"

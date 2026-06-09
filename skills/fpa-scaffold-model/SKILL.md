@@ -24,13 +24,24 @@ Turn a company's financials into a runnable `pyfpa` config. Read the business pr
    - cost accounts → `opex[]` as `OpexLine(kind="fixed", monthly_amount=…)` or `kind="variable", pct_of_revenue=…`
    - debt → `debt[]` (`term_loan` with `monthly_principal`, or interest-only `loc`)
    - balance-sheet rhythm → `working_capital(dso_days, dpo_days, dio_days)` and `opening_balances`
-3. **Write** `config.yaml` (validate by loading it: `pyfpa.load_config(path)` raises on any bad field).
-4. **Run it**: `pyfpa.cashflow_from_config(cfg)` → a 12-month P&L + cash flow. Confirm it executes.
-5. **Surface assumptions**: list the 6–10 inferences a human must confirm (seasonality shape, fixed vs variable splits, cogs_pct per channel, opening balances). Don't bury them.
+3. **Write** the company model and config under `models/generated/`. Validate
+   config with `pyfpa.load_config(path)`, which raises on any bad field.
+4. **Create a runnable command** such as
+   `python3 models/generated/run_forecast.py`. Keep the runner thin and make its
+   output locations explicit.
+5. **Run and validate it.** Confirm the model executes, reconciles its inputs,
+   and writes the expected outputs.
+6. **Register the tested command** with `openfpa entrypoint-register`, including
+   its inputs and outputs. Registration publishes the command for agent
+   discovery; it does not run it.
+7. **Surface assumptions**: list the 6-10 inferences a human must confirm
+   (seasonality shape, fixed vs variable splits, cogs_pct per channel, opening
+   balances). Do not bury them.
 
 ## Conventions (match the engine)
 
-- YAML is the source of truth; never hardcode numbers in code.
+- For a config-backed generated model, keep assumptions in validated YAML rather
+  than scattering company numbers through code.
 - Set `opening_balances` AR/AP/inventory to the **first forecast month's** DSO/DPO/DIO-implied balances — the engine diffs each month against the prior, seeding month 1 against opening, so use month-1 projected revenue/COGS, NOT the annual average. Get this wrong and month-1 cash swings on a one-time artifact (see **fpa-cfo-judgment** working-capital seam).
 - `"total"` is a reserved channel/opex name (the engine adds a `total` column).
 

@@ -3,22 +3,25 @@ from __future__ import annotations
 from typing import Literal
 
 import pandas as pd
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class Channel(BaseModel):
     name: str
     annual_revenue: float = Field(ge=0)
-    growth_rate: float = 0.0          # annual YoY, compounded per forecast year
+    growth_rate: float = Field(default=0.0, gt=-1)  # annual YoY
     seasonality: list[float] = Field(min_length=12, max_length=12)
     cogs_pct: float = Field(ge=0, le=1)
 
     @field_validator("name")
     @classmethod
     def _name_not_reserved(cls, v: str) -> str:
-        if v.strip().lower() == "total":
+        name = v.strip()
+        if not name:
+            raise ValueError("name must not be empty")
+        if name.lower() == "total":
             raise ValueError("'total' is a reserved column name")
-        return v
+        return name
 
     @field_validator("seasonality")
     @classmethod
@@ -37,9 +40,12 @@ class OpexLine(BaseModel):
     @field_validator("name")
     @classmethod
     def _name_not_reserved(cls, v: str) -> str:
-        if v.strip().lower() == "total":
+        name = v.strip()
+        if not name:
+            raise ValueError("name must not be empty")
+        if name.lower() == "total":
             raise ValueError("'total' is a reserved column name")
-        return v
+        return name
 
 
 class DebtInstrument(BaseModel):
@@ -48,6 +54,14 @@ class DebtInstrument(BaseModel):
     opening_balance: float = Field(ge=0)
     annual_rate: float = Field(ge=0)
     monthly_principal: float = Field(default=0.0, ge=0)  # term_loan only
+
+    @field_validator("name")
+    @classmethod
+    def _name_not_empty(cls, v: str) -> str:
+        name = v.strip()
+        if not name:
+            raise ValueError("name must not be empty")
+        return name
 
 
 class WorkingCapitalConfig(BaseModel):
@@ -71,7 +85,7 @@ class EntityConfig(BaseModel):
     tax_rate: float = Field(default=0.21, ge=0, le=1)
     da_monthly: float = Field(default=0.0, ge=0)      # depreciation & amortization
     capex_monthly: float = Field(default=0.0, ge=0)   # capital expenditure
-    channels: list[Channel]
+    channels: list[Channel] = Field(min_length=1)
     opex: list[OpexLine] = Field(default_factory=list)
     debt: list[DebtInstrument] = Field(default_factory=list)
     working_capital: WorkingCapitalConfig
@@ -85,3 +99,11 @@ class EntityConfig(BaseModel):
         except Exception as e:  # noqa: BLE001 - re-raised as ValueError for pydantic
             raise ValueError(f"start_month must be YYYY-MM, got {v!r}") from e
         return v
+
+    @model_validator(mode="after")
+    def _unique_line_names(self) -> "EntityConfig":
+        for field in ("channels", "opex", "debt"):
+            names = [item.name.casefold() for item in getattr(self, field)]
+            if len(names) != len(set(names)):
+                raise ValueError(f"{field} names must be unique")
+        return self
