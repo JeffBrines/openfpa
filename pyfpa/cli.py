@@ -1,26 +1,49 @@
 from __future__ import annotations
 
-import argparse
 import json
 import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
 
-from pyfpa.memory.diagnostics import WorkspaceReport, validate_workspace
+from pyfpa.cli_helpers import (
+    EXIT_FAILED,
+    EXIT_OK,
+    EXIT_USAGE,
+    SCHEMA_VERSION,
+    JsonArgumentParser,
+    _failure,
+    _root,
+    _success,
+    _write_json,
+)
+from pyfpa.cli_commands.learning import (
+    command_context_pack,
+    command_correction_list,
+    command_correction_record,
+    command_experiment_list,
+    command_onboarding_render,
+    command_scorecard_render,
+)
+from pyfpa.cli_commands.lineage import (
+    command_connector_list,
+    command_connector_scaffold,
+    command_connector_validate,
+    command_mapping_list,
+    command_mapping_register,
+    command_reconcile_source,
+    command_source_list,
+    command_source_profile,
+    command_source_register,
+)
+from pyfpa.memory.diagnostics import validate_workspace
 from pyfpa.memory.entrypoints import (
     CompanyEntrypoint,
     load_entrypoint_registry,
     register_entrypoint,
     save_entrypoint_registry,
 )
-from pyfpa.memory.connectors import (
-    connector_bundle_path,
-    load_connector_manifests,
-    scaffold_connector_bundle,
-    validate_connector_bundle,
-)
-from pyfpa.memory.inspection import InspectionResult, inspect_data_files
+from pyfpa.memory.inspection import inspect_data_files
 from pyfpa.memory.intake import (
     intake_ready,
     load_intake,
@@ -28,83 +51,8 @@ from pyfpa.memory.intake import (
     record_intake_fact,
     save_intake,
 )
-from pyfpa.memory.lineage import (
-    MappingRule,
-    SourceRecord,
-    load_mapping_registry,
-    load_source_registry,
-    profile_table,
-    reconcile_account_table,
-    register_mapping,
-    register_source,
-    save_mapping_registry,
-    save_source_registry,
-)
 from pyfpa.memory.workspace import WORKSPACE_DIRS, initialize_workspace, workspace_path
-from pyfpa.research.objective import load_research_objective
 from pyfpa.research.registry import load_model_registry
-
-
-SCHEMA_VERSION = 1
-EXIT_OK = 0
-EXIT_FAILED = 1
-EXIT_USAGE = 2
-
-
-class JsonArgumentParser(argparse.ArgumentParser):
-    def error(self, message: str) -> None:
-        _write_json(
-            {
-                "schema_version": SCHEMA_VERSION,
-                "command": "usage",
-                "ok": False,
-                "error": {"type": "usage_error", "message": message},
-            },
-            stream=sys.stderr,
-        )
-        raise SystemExit(EXIT_USAGE)
-
-
-def _write_json(payload: dict[str, Any], *, stream: Any = sys.stdout) -> None:
-    stream.write(json.dumps(payload, indent=2, sort_keys=True) + "\n")
-
-
-def _success(command: str, root: Path, data: dict[str, Any]) -> int:
-    _write_json(
-        {
-            "schema_version": SCHEMA_VERSION,
-            "command": command,
-            "ok": True,
-            "root": str(root),
-            "data": data,
-        }
-    )
-    return EXIT_OK
-
-
-def _failure(
-    command: str,
-    root: Path,
-    error_type: str,
-    message: str,
-    *,
-    data: dict[str, Any] | None = None,
-) -> int:
-    payload: dict[str, Any] = {
-        "schema_version": SCHEMA_VERSION,
-        "command": command,
-        "ok": False,
-        "root": str(root),
-        "error": {"type": error_type, "message": message},
-    }
-    if data is not None:
-        payload["data"] = data
-    _write_json(payload)
-    return EXIT_FAILED
-
-
-def _root(path: str) -> Path:
-    return Path(path).expanduser().resolve()
 
 
 def _workspace_counts(workspace: Path) -> dict[str, int]:
@@ -115,7 +63,7 @@ def _workspace_counts(workspace: Path) -> dict[str, int]:
     }
 
 
-def command_init(args: argparse.Namespace) -> int:
+def command_init(args: Any) -> int:
     root = _root(args.path)
     root.mkdir(parents=True, exist_ok=True)
     existed = workspace_path(root).exists()
@@ -133,7 +81,7 @@ def command_init(args: argparse.Namespace) -> int:
     )
 
 
-def command_inspect_data(args: argparse.Namespace) -> int:
+def command_inspect_data(args: Any) -> int:
     root = _root(args.path)
     if not root.is_dir():
         return _failure("inspect-data", root, "path_not_found", "inspection path is not a directory")
@@ -153,7 +101,7 @@ def command_inspect_data(args: argparse.Namespace) -> int:
     )
 
 
-def command_status(args: argparse.Namespace) -> int:
+def command_status(args: Any) -> int:
     root = _root(args.path)
     workspace = workspace_path(root)
     if not workspace.is_dir():
@@ -167,6 +115,9 @@ def command_status(args: argparse.Namespace) -> int:
             },
         )
     try:
+        from pyfpa.memory.connectors import load_connector_manifests
+        from pyfpa.memory.lineage import load_mapping_registry, load_source_registry
+
         intake = load_intake(workspace / "intake.md")
         registry = load_model_registry(workspace / "models" / "registry.yaml")
         entrypoints = load_entrypoint_registry(
@@ -211,7 +162,7 @@ def command_status(args: argparse.Namespace) -> int:
     )
 
 
-def command_intake_next(args: argparse.Namespace) -> int:
+def command_intake_next(args: Any) -> int:
     root = _root(args.path)
     intake_path = workspace_path(root) / "intake.md"
     if not intake_path.exists():
@@ -239,7 +190,7 @@ def command_intake_next(args: argparse.Namespace) -> int:
     )
 
 
-def command_intake_record(args: argparse.Namespace) -> int:
+def command_intake_record(args: Any) -> int:
     root = _root(args.path)
     intake_path = workspace_path(root) / "intake.md"
     if not intake_path.exists():
@@ -294,7 +245,7 @@ def _command_from_json(value: str) -> list[str]:
     return command
 
 
-def command_entrypoint_register(args: argparse.Namespace) -> int:
+def command_entrypoint_register(args: Any) -> int:
     root = _root(args.path)
     registry_path = _entrypoint_registry_path(root)
     if not workspace_path(root).is_dir():
@@ -338,7 +289,7 @@ def command_entrypoint_register(args: argparse.Namespace) -> int:
     )
 
 
-def command_entrypoint_list(args: argparse.Namespace) -> int:
+def command_entrypoint_list(args: Any) -> int:
     root = _root(args.path)
     registry_path = _entrypoint_registry_path(root)
     if not workspace_path(root).is_dir():
@@ -368,354 +319,7 @@ def command_entrypoint_list(args: argparse.Namespace) -> int:
     )
 
 
-def _source_registry_path(root: Path) -> Path:
-    return workspace_path(root) / "sources" / "registry.yaml"
-
-
-def _mapping_registry_path(root: Path) -> Path:
-    return workspace_path(root) / "mappings" / "registry.yaml"
-
-
-def command_source_register(args: argparse.Namespace) -> int:
-    root = _root(args.path)
-    registry_path = _source_registry_path(root)
-    if not workspace_path(root).is_dir():
-        return _failure(
-            "source-register",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before registering sources",
-        )
-    try:
-        source = SourceRecord(
-            source_id=args.source_id,
-            kind=args.kind,
-            location=args.location,
-            entity=args.entity,
-            currency=args.currency,
-            periods=args.period,
-            extraction_method=args.extraction_method,
-            refreshed_at=args.refreshed_at,
-            notes=args.notes,
-        )
-        registry = register_source(
-            load_source_registry(registry_path),
-            source,
-            overwrite=args.overwrite,
-        )
-        save_source_registry(registry, registry_path)
-    except Exception as exc:
-        return _failure("source-register", root, "invalid_source", str(exc))
-    return _success(
-        "source-register",
-        root,
-        {
-            "source": source.model_dump(),
-            "registry_path": str(registry_path),
-            "source_count": len(registry.sources),
-        },
-    )
-
-
-def command_source_list(args: argparse.Namespace) -> int:
-    root = _root(args.path)
-    registry_path = _source_registry_path(root)
-    if not workspace_path(root).is_dir():
-        return _failure(
-            "source-list",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before listing sources",
-        )
-    try:
-        registry = load_source_registry(registry_path)
-    except Exception as exc:
-        return _failure("source-list", root, "invalid_source_registry", str(exc))
-    sources = [
-        source for source in registry.sources
-        if args.kind is None or source.kind == args.kind
-    ]
-    return _success(
-        "source-list",
-        root,
-        {
-            "sources": [source.model_dump() for source in sources],
-            "source_count": len(sources),
-            "registry_path": str(registry_path),
-            "writes_performed": False,
-        },
-    )
-
-
-def command_source_profile(args: argparse.Namespace) -> int:
-    root = _root(args.path)
-    file_path = Path(args.file).expanduser()
-    if not file_path.is_absolute():
-        file_path = root / file_path
-    try:
-        profile = profile_table(file_path.resolve())
-    except Exception as exc:
-        return _failure("source-profile", root, "profile_failed", str(exc))
-    return _success(
-        "source-profile",
-        root,
-        {**profile, "writes_performed": False},
-    )
-
-
-def command_mapping_register(args: argparse.Namespace) -> int:
-    root = _root(args.path)
-    registry_path = _mapping_registry_path(root)
-    if not workspace_path(root).is_dir():
-        return _failure(
-            "mapping-register",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before registering mappings",
-        )
-    try:
-        sources = load_source_registry(_source_registry_path(root))
-        if not any(source.source_id == args.source_id for source in sources.sources):
-            raise ValueError(f"source is not registered: {args.source_id}")
-        mapping = MappingRule(
-            source_id=args.source_id,
-            source_value=args.source_value,
-            target=args.target,
-            status=args.status,
-            rationale=args.rationale,
-        )
-        registry = register_mapping(
-            load_mapping_registry(registry_path),
-            mapping,
-            overwrite=args.overwrite,
-        )
-        save_mapping_registry(registry, registry_path)
-    except Exception as exc:
-        return _failure("mapping-register", root, "invalid_mapping", str(exc))
-    return _success(
-        "mapping-register",
-        root,
-        {
-            "mapping": mapping.model_dump(),
-            "registry_path": str(registry_path),
-            "mapping_count": len(registry.mappings),
-        },
-    )
-
-
-def command_mapping_list(args: argparse.Namespace) -> int:
-    root = _root(args.path)
-    registry_path = _mapping_registry_path(root)
-    if not workspace_path(root).is_dir():
-        return _failure(
-            "mapping-list",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before listing mappings",
-        )
-    try:
-        registry = load_mapping_registry(registry_path)
-    except Exception as exc:
-        return _failure("mapping-list", root, "invalid_mapping_registry", str(exc))
-    mappings = [
-        mapping for mapping in registry.mappings
-        if (args.source_id is None or mapping.source_id == args.source_id)
-        and (args.status is None or mapping.status == args.status)
-    ]
-    return _success(
-        "mapping-list",
-        root,
-        {
-            "mappings": [mapping.model_dump() for mapping in mappings],
-            "mapping_count": len(mappings),
-            "registry_path": str(registry_path),
-            "writes_performed": False,
-        },
-    )
-
-
-def _expected_from_json(value: str | None) -> dict[str, float] | None:
-    if value is None:
-        return None
-    expected = json.loads(value)
-    if not isinstance(expected, dict) or any(
-        not isinstance(key, str) or not isinstance(amount, (int, float))
-        for key, amount in expected.items()
-    ):
-        raise ValueError("--expected-json must be a JSON object of numeric totals")
-    return {key: float(amount) for key, amount in expected.items()}
-
-
-def command_reconcile_source(args: argparse.Namespace) -> int:
-    root = _root(args.path)
-    if not workspace_path(root).is_dir():
-        return _failure(
-            "reconcile-source",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before reconciling sources",
-        )
-    try:
-        source_registry = load_source_registry(_source_registry_path(root))
-        source = next(
-            item for item in source_registry.sources
-            if item.source_id == args.source_id
-        )
-        file_path = Path(args.file or source.location).expanduser()
-        if not file_path.is_absolute():
-            file_path = root / file_path
-        result = reconcile_account_table(
-            file_path.resolve(),
-            source_id=args.source_id,
-            mappings=load_mapping_registry(_mapping_registry_path(root)),
-            account_column=args.account_column,
-            amount_column=args.amount_column,
-            expected=_expected_from_json(args.expected_json),
-            tolerance=args.tolerance,
-        )
-        if args.allow_unmapped and not result["duplicates"]:
-            expected_passed = all(
-                item["within_tolerance"] for item in result["variances"].values()
-            ) if result["expected_provided"] else True
-            result["passed"] = expected_passed
-    except StopIteration:
-        return _failure(
-            "reconcile-source",
-            root,
-            "source_not_found",
-            f"source is not registered: {args.source_id}",
-        )
-    except Exception as exc:
-        return _failure("reconcile-source", root, "reconciliation_failed", str(exc))
-    if not result["passed"]:
-        return _failure(
-            "reconcile-source",
-            root,
-            "reconciliation_failed",
-            "source contains duplicates, unmapped values, or out-of-tolerance totals",
-            data=result,
-        )
-    return _success("reconcile-source", root, result)
-
-
-def command_connector_scaffold(args: argparse.Namespace) -> int:
-    root = _root(args.path)
-    if not workspace_path(root).is_dir():
-        return _failure(
-            "connector-scaffold",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before scaffolding connectors",
-        )
-    fixture = Path(args.fixture).expanduser()
-    if not fixture.is_absolute():
-        fixture = root / fixture
-    try:
-        sources = load_source_registry(_source_registry_path(root))
-        if not any(source.source_id == args.source_id for source in sources.sources):
-            raise ValueError(f"source is not registered: {args.source_id}")
-        manifest, reconciliation = scaffold_connector_bundle(
-            root,
-            name=args.name,
-            source_id=args.source_id,
-            description=args.description,
-            auth_method=args.auth_method,
-            fixture=fixture.resolve(),
-            account_column=args.account_column,
-            amount_column=args.amount_column,
-            mappings=load_mapping_registry(_mapping_registry_path(root)),
-            overwrite=args.overwrite,
-        )
-    except Exception as exc:
-        return _failure(
-            "connector-scaffold",
-            root,
-            "connector_scaffold_failed",
-            str(exc),
-        )
-    return _success(
-        "connector-scaffold",
-        root,
-        {
-            "manifest": manifest.model_dump(),
-            "bundle_path": str(connector_bundle_path(root, manifest.name)),
-            "fixture_reconciliation": reconciliation,
-            "next_command": (
-                f"python3 -m pyfpa.cli connector-validate {json.dumps(str(root))} "
-                f"--name {manifest.name}"
-            ),
-        },
-    )
-
-
-def command_connector_list(args: argparse.Namespace) -> int:
-    root = _root(args.path)
-    if not workspace_path(root).is_dir():
-        return _failure(
-            "connector-list",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before listing connectors",
-        )
-    try:
-        manifests = [
-            manifest
-            for manifest in load_connector_manifests(root)
-            if args.source_id is None or manifest.source_id == args.source_id
-        ]
-    except Exception as exc:
-        return _failure(
-            "connector-list",
-            root,
-            "invalid_connector_manifest",
-            str(exc),
-        )
-    return _success(
-        "connector-list",
-        root,
-        {
-            "connectors": [manifest.model_dump() for manifest in manifests],
-            "connector_count": len(manifests),
-            "writes_performed": False,
-        },
-    )
-
-
-def command_connector_validate(args: argparse.Namespace) -> int:
-    root = _root(args.path)
-    if not workspace_path(root).is_dir():
-        return _failure(
-            "connector-validate",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before validating connectors",
-        )
-    try:
-        result = validate_connector_bundle(
-            root,
-            name=args.name,
-            mappings=load_mapping_registry(_mapping_registry_path(root)),
-            timeout=args.timeout,
-        )
-    except Exception as exc:
-        return _failure(
-            "connector-validate",
-            root,
-            "connector_validation_failed",
-            str(exc),
-        )
-    if not result["passed"]:
-        return _failure(
-            "connector-validate",
-            root,
-            "connector_validation_failed",
-            "connector fixture output failed reconciliation",
-            data=result,
-        )
-    return _success("connector-validate", root, result)
-
-
-def command_doctor(args: argparse.Namespace) -> int:
+def command_doctor(args: Any) -> int:
     root = _root(args.path)
     report = validate_workspace(root)
     payload = {
@@ -735,242 +339,7 @@ def command_doctor(args: argparse.Namespace) -> int:
     return _success("doctor", root, payload)
 
 
-def command_correction_record(args: argparse.Namespace) -> int:
-    from pyfpa.memory.corrections import Correction, Override, save_correction
-
-    root = _root(args.path)
-    workspace = workspace_path(root)
-    if not workspace.is_dir():
-        return _failure(
-            "correction-record",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before recording corrections",
-        )
-    try:
-        override = None
-        if args.override_path is not None:
-            override = Override(path=args.override_path, value=args.override_value)
-        correction = Correction(
-            slug=args.slug,
-            type=args.type,
-            target=args.target,
-            status=args.status,
-            date=args.date,
-            override=override,
-            notes=args.notes or "",
-        )
-        save_correction(correction, workspace / "corrections")
-    except Exception as exc:
-        return _failure("correction-record", root, "invalid_correction", str(exc))
-    return _success(
-        "correction-record",
-        root,
-        {
-            "slug": correction.slug,
-            "type": correction.type,
-            "target": correction.target,
-            "status": correction.status,
-            "date": correction.date,
-            "override": correction.override.model_dump() if correction.override else None,
-            "corrections_dir": str(workspace / "corrections"),
-        },
-    )
-
-
-def command_correction_list(args: argparse.Namespace) -> int:
-    from pyfpa.memory.corrections import load_corrections
-
-    root = _root(args.path)
-    workspace = workspace_path(root)
-    if not workspace.is_dir():
-        return _failure(
-            "correction-list",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before listing corrections",
-        )
-    try:
-        corrections = load_corrections(workspace / "corrections")
-    except Exception as exc:
-        return _failure("correction-list", root, "invalid_correction", str(exc))
-    filtered = [
-        c for c in corrections
-        if args.status is None or c.status == args.status
-    ]
-    return _success(
-        "correction-list",
-        root,
-        {
-            "corrections": [
-                {"slug": c.slug, "type": c.type, "target": c.target, "status": c.status}
-                for c in filtered
-            ],
-            "correction_count": len(filtered),
-            "writes_performed": False,
-        },
-    )
-
-
-def command_scorecard_render(args: argparse.Namespace) -> int:
-    from pyfpa.backtest.learn import render_scorecard
-    from pyfpa.backtest.snapshot import load_snapshot
-
-    root = _root(args.path)
-    workspace = workspace_path(root)
-    if not workspace.is_dir():
-        return _failure(
-            "scorecard-render",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before rendering scorecard",
-        )
-    forecasts_dir = workspace / "forecasts"
-    snapshots = []
-    parse_errors = []
-    if forecasts_dir.is_dir():
-        for snap_path in sorted(forecasts_dir.glob("*.yaml")):
-            try:
-                snapshots.append(load_snapshot(snap_path))
-            except Exception as exc:
-                parse_errors.append(f"{snap_path.name}: {exc}")
-    if parse_errors:
-        return _failure(
-            "scorecard-render",
-            root,
-            "invalid_snapshot",
-            "; ".join(parse_errors),
-        )
-    scored = [s for s in snapshots if s.score is not None]
-    unscored = [s for s in snapshots if s.score is None]
-    scorecard_path = workspace / "scorecard.md"
-    try:
-        scorecard_path.write_text(render_scorecard(snapshots))
-    except Exception as exc:
-        return _failure("scorecard-render", root, "render_failed", str(exc))
-    return _success(
-        "scorecard-render",
-        root,
-        {
-            "scorecard_path": str(scorecard_path),
-            "snapshot_count": len(snapshots),
-            "scored_count": len(scored),
-            "unscored_count": len(unscored),
-        },
-    )
-
-
-def command_experiment_list(args: argparse.Namespace) -> int:
-    from pyfpa.memory.experiments import load_experiments
-
-    root = _root(args.path)
-    workspace = workspace_path(root)
-    if not workspace.is_dir():
-        return _failure(
-            "experiment-list",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before listing experiments",
-        )
-    try:
-        experiments = load_experiments(workspace / "experiments")
-    except Exception as exc:
-        return _failure("experiment-list", root, "invalid_experiment", str(exc))
-    filtered = [
-        e for e in experiments
-        if args.status is None or e.status == args.status
-    ]
-    return _success(
-        "experiment-list",
-        root,
-        {
-            "experiments": [
-                {
-                    "slug": e.slug,
-                    "status": e.status,
-                    "hypothesis": e.hypothesis,
-                    "snapshot": e.snapshot,
-                    "created": e.created,
-                }
-                for e in filtered
-            ],
-            "experiment_count": len(filtered),
-            "writes_performed": False,
-        },
-    )
-
-
-def command_context_pack(args: argparse.Namespace) -> int:
-    from pyfpa.memory.retrieval import build_context_pack, build_memory_index, search_memory
-
-    root = _root(args.path)
-    workspace = workspace_path(root)
-    if not workspace.is_dir():
-        return _failure(
-            "context-pack",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before building a context pack",
-        )
-    try:
-        index = build_memory_index(workspace)
-        pack = build_context_pack(
-            index,
-            args.task,
-            categories=args.category or None,
-            limit=args.limit,
-        )
-        hits = search_memory(index, args.task, categories=args.category or None, limit=args.limit)
-    except Exception as exc:
-        return _failure("context-pack", root, "context_pack_failed", str(exc))
-    return _success(
-        "context-pack",
-        root,
-        {
-            "pack": pack,
-            "hit_count": len(hits),
-            "entry_count": len(index.entries),
-            "writes_performed": False,
-        },
-    )
-
-
-def command_onboarding_render(args: argparse.Namespace) -> int:
-    from pyfpa.memory.onboarding import ArchitectureProposal, write_onboarding_outputs
-
-    root = _root(args.path)
-    workspace = workspace_path(root)
-    if not workspace.is_dir():
-        return _failure(
-            "onboarding-render",
-            root,
-            "workspace_not_initialized",
-            "initialize the company workspace before rendering onboarding outputs",
-        )
-    try:
-        intake = load_intake(workspace / "intake.md")
-        proposal = ArchitectureProposal(
-            summary=args.proposal_summary,
-            connectors=args.connector or [],
-            model_components=args.model_component or [],
-            generated_skills=args.generated_skill or [],
-            risks=args.risk or [],
-            validation_checks=args.validation_check or [],
-        )
-        profile_path, proposal_path = write_onboarding_outputs(intake, workspace, proposal)
-    except Exception as exc:
-        return _failure("onboarding-render", root, "onboarding_render_failed", str(exc))
-    return _success(
-        "onboarding-render",
-        root,
-        {
-            "profile_path": str(profile_path),
-            "proposal_path": str(proposal_path),
-        },
-    )
-
-
-def build_parser() -> argparse.ArgumentParser:
+def build_parser() -> JsonArgumentParser:
     parser = JsonArgumentParser(
         prog="openfpa",
         description="Machine-oriented FP&A toolbelt for AI coding agents.",
@@ -1268,7 +637,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.error("--tolerance must be non-negative")
     if getattr(args, "timeout", 1.0) <= 0:
         parser.error("--timeout must be greater than zero")
-    handler: Callable[[argparse.Namespace], int] = args.handler
+    handler: Callable[[Any], int] = args.handler
     try:
         return handler(args)
     except Exception as exc:
