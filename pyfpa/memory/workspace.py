@@ -5,7 +5,7 @@ from pathlib import Path
 from pyfpa.memory.intake import Intake, save_intake
 
 
-_WORKSPACE_DIRS = (
+WORKSPACE_DIRS = (
     "sources",
     "mappings",
     "corrections",
@@ -37,7 +37,7 @@ def initialize_workspace(
     """Create a company `.fpa` workspace without overwriting existing memory."""
     workspace = workspace_path(company_root)
     workspace.mkdir(parents=True, exist_ok=True)
-    for directory in _WORKSPACE_DIRS:
+    for directory in WORKSPACE_DIRS:
         (workspace / directory).mkdir(exist_ok=True)
     for directory in _GENERATED_DIRS:
         (Path(company_root) / directory).mkdir(parents=True, exist_ok=True)
