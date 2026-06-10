@@ -1,4 +1,4 @@
-# Live-Formula Excel Export — Design
+# Live-Formula Excel Export: Design
 
 **Status:** Approved (design phase)
 **Date:** 2026-06-10
@@ -34,7 +34,7 @@ target for `EntityConfig`, and it belongs in the kernel.
 | Formula vocabulary | Restricted by design to arithmetic, `^`, `SUM`, `MIN`, `MAX`, `IF`. Everything the engine model needs, and everything the `formulas` evaluator handles reliably. |
 | Verification bar | A workbook reproduces `cashflow_from_config` line by line, month by month, within 1e-6 relative. Enforced in CI on the Ridgeline config. |
 
-## Components — `pyfpa/excel/` (new package, small files)
+## Components: `pyfpa/excel/` (new package, small files)
 
 `pyfpa/excel/toolkit.py` (the composable pieces)
 - `add_named_cell(ws, name, value, *, workbook)` and
