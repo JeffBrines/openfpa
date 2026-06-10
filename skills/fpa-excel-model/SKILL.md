@@ -39,7 +39,13 @@ Quarterly, weekly, a tab per segment, a lender view: these are YOUR work, not
 kernel variants. Compose `pyfpa.excel.toolkit` (`add_named_cell`,
 `add_named_row`, `fill_formula_row`, formats) in a company-specific exporter
 under the generated namespace (`models/generated/<name>/`), then register it:
-`python3 -m pyfpa.cli entrypoint-register <root> --name excel-quarterly --kind report ...`.
+
+```bash
+python3 -m pyfpa.cli entrypoint-register <root> --name excel-quarterly --kind report \
+  --description "Quarterly live-formula workbook" \
+  --command-json '["python3", "models/generated/<name>/excel_quarterly.py"]'
+```
+
 Keep formulas within the supported vocabulary (arithmetic, `^`, `SUM`, `MIN`,
 `MAX`, `IF`) so verification works.
 

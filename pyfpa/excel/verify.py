@@ -80,8 +80,15 @@ def verify_workbook(
             if raw is None or (isinstance(raw, float) and math.isnan(raw)):
                 failures.append(f"{line} month {m_idx + 1}: workbook returned NaN/None")
                 continue
+            if not isinstance(raw, (int, float)):
+                # Excel error sentinels (#DIV/0!, #VALUE!, ...) arrive as XlError
+                # objects. An errored cell is a failed verification, never a crash.
+                failures.append(f"{line} month {m_idx + 1}: workbook returned error {raw!s}")
+                continue
             got = float(raw)
             want = float(expected[line].iloc[m_idx])
+            # Hybrid tolerance: relative above magnitude 1, absolute below it,
+            # so zero-valued lines (e.g. tax with full NOL cover) stay checkable.
             denom = max(abs(want), 1.0)
             dev = abs(got - want) / denom
             max_dev = max(max_dev, dev)

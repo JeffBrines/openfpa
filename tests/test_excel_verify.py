@@ -59,3 +59,19 @@ def test_missing_formulas_dependency_message():
             v._load_formulas()
     finally:
         builtins.__import__ = real_import
+
+
+def test_verify_fails_cleanly_on_excel_error_cell(tmp_path):
+    # an errored cell (#DIV/0!) must produce a failing report, never a crash
+    from openpyxl import load_workbook
+    cfg = _simple_cfg()
+    path = tmp_path / "m.xlsx"
+    model_to_excel(cfg, path)
+    wb = load_workbook(path)
+    model = wb["Model"]
+    labels = {model.cell(row=r, column=1).value: r for r in range(2, model.max_row + 1)}
+    model.cell(row=labels["gross_profit"], column=3, value="=1/0")
+    wb.save(path)
+    report = verify_workbook(path, cashflow_from_config(cfg))
+    assert not report.passed
+    assert any("error" in f.lower() for f in report.failures)
