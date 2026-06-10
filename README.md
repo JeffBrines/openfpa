@@ -475,4 +475,4 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the development workflow.
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE). Built and maintained by Guiderail.
+MIT. See [`LICENSE`](LICENSE). Built and maintained by [Guiderail](https://www.guiderail.io).
