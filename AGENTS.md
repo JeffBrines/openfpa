@@ -98,6 +98,14 @@ small, trustworthy accounting kernel.
 9. Present only promotion-eligible challengers for human ratification. Never
    replace the champion without explicit approval.
 
+## Excel Output
+
+When the user wants Excel output with working formulas, use `model_to_excel` for
+the standard monthly model. For any other cadence or layout, generate a
+company-specific exporter from `pyfpa.excel.toolkit` in the generated namespace
+and register it as a report entrypoint. Install `formulas` and run
+`verify_workbook` before delivering. No workbook ships unverified.
+
 ## Kernel Guardrails
 
 - Never hide reconciliation differences, missing actuals, duplicate names, or

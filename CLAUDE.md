@@ -57,3 +57,7 @@ After the initial architecture is approved, use `fpa-research-loop` for bounded
 autonomous improvement. You may generate, evaluate, and discard challengers
 without asking for approval each time. Human approval is required for promotion
 before a challenger replaces the champion.
+
+For Excel output with working formulas, use `openfpa model-export` or
+`pyfpa.model_to_excel` for the standard monthly model. Run `verify_workbook`
+before delivering. No workbook ships unverified.
