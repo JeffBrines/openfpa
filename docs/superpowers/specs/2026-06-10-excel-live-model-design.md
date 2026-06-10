@@ -86,8 +86,17 @@ target for `EntityConfig`, and it belongs in the kernel.
   in the generated namespace using `pyfpa.excel.toolkit`, register it with
   `entrypoint-register` (kind `report`), install `formulas`, and run
   `verify_workbook` before delivering. No workbook ships unverified.
-- **Skills:** `fpa-board-briefing` gains the export step; `fpa-scaffold-model`
-  mentions the workbook as a deliverable. No new skill in v1.
+- **Skill (new): `skills/fpa-excel-model/SKILL.md`.** Triggers on the way users
+  actually ask ("export this to Excel", "a workbook with working formulas",
+  "something I can hand my board that recalculates"). Encodes the workflow:
+  use `model_to_excel` for the standard monthly model; for any other cadence
+  or layout, generate a company-specific exporter in the generated namespace
+  composing `pyfpa.excel.toolkit`, register it with `entrypoint-register`
+  (kind `report`); always `pip install formulas` and run `verify_workbook`
+  before delivering. Guardrails: no workbook ships unverified; formulas stay
+  within the supported vocabulary; the workbook is generated from the model
+  structure, never hand-edited values. `fpa-board-briefing` and
+  `fpa-scaffold-model` get one-line pointers to it.
 - **Ridgeline example:** `run_demo.py` also emits `model.xlsx` so a downloader
   opens a working formula model two commands after cloning.
 
@@ -126,7 +135,9 @@ target for `EntityConfig`, and it belongs in the kernel.
    exporter composes it without copying kernel internals.
 5. Runtime dependencies unchanged (openpyxl only); `formulas` confined to the
    dev extra.
-6. Contract, skills, README updated; no em dashes; suite green.
+6. The `fpa-excel-model` skill exists, triggers on Excel-shaped requests, and
+   every `pyfpa.*` call it references resolves (the phantom-call audit bar).
+7. Contract, skills, README updated; no em dashes; suite green.
 
 ## Testing
 
