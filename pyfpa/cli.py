@@ -25,6 +25,7 @@ from pyfpa.cli_commands.learning import (
     command_onboarding_render,
     command_scorecard_render,
 )
+from pyfpa.cli_commands.reporting import command_model_export
 from pyfpa.cli_commands.lineage import (
     command_connector_list,
     command_connector_scaffold,
@@ -548,6 +549,15 @@ def build_parser() -> JsonArgumentParser:
     connector_validate_parser.add_argument("--name", required=True)
     connector_validate_parser.add_argument("--timeout", type=float, default=30.0)
     connector_validate_parser.set_defaults(handler=command_connector_validate)
+
+    model_export_parser = subparsers.add_parser(
+        "model-export",
+        help="Generate a live-formula Excel workbook from an EntityConfig YAML",
+    )
+    model_export_parser.add_argument("path", nargs="?", default=".")
+    model_export_parser.add_argument("--config", required=True)
+    model_export_parser.add_argument("--out", required=True)
+    model_export_parser.set_defaults(handler=command_model_export)
 
     doctor_parser = subparsers.add_parser("doctor", help="Validate workspace contracts")
     doctor_parser.add_argument("path", nargs="?", default=".")
